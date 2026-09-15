@@ -18,10 +18,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ============================================================================
-// 🌟 목표 점수 설정 (최소 30시간 플레이 기준: 12,000점 / 깜짝 선물: 11,999점)
+// 🌟 목표 점수 설정 (10,000점 완주 / 9,999점 깜짝 선물)
 // ============================================================================
-const HALL_OF_FAME_TARGET_SCORE = 10000;                       // 명예의 전당 입성 점수
-const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1;     // 깜짝 선물 도달 점수 (11,999점)
+const HALL_OF_FAME_TARGET_SCORE = 10000;                      // 명예의 전당 입성 점수 (1만 점)
+const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1;    // 깜짝 선물 점수 (9,999점)
 
 // DOM 요소 참조
 const homeScreen = document.getElementById('home-screen');
@@ -69,11 +69,11 @@ let currentCorrectAnswer = "";
 let totalLives = 5;          // 전체 목숨 (하트 5개)
 let questionAttempts = 3;    // 해당 문항 내 남은 시도 횟수 (3, 2, 1)
 
-// 🌟 보상 상태 변수 (300, 600 제거, 11,999점 선물 및 12,000점 명예의 전당만 관리)
+// 보상 상태 변수
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
 
-// 로컬 스토리지 이름 자동 로드
+// 로컬 스토리지에 저장된 사용자 이름 자동 로드
 const savedName = localStorage.getItem('bibleQuizUser');
 if (savedName) {
     usernameInput.value = savedName;
@@ -142,7 +142,7 @@ async function saveUserScore(score) {
     }
 }
 
-// 🌟 명예의 전당 영구 보존 함수 (12,000점 완주자 기록)
+// 10,000점 완주자 명예의 전당 영구 보존
 async function saveToHallOfFame() {
     if (!currentUser) return;
     try {
@@ -237,7 +237,7 @@ async function showLeaderboard() {
     }
 }
 
-// 🌟 명예의 전당 헌액자 렌더링
+// 명예의 전당 헌액자 렌더링
 async function showHallOfFame() {
     tabHall.classList.add('active');
     tabRealtime.classList.remove('active');
@@ -272,39 +272,80 @@ async function showHallOfFame() {
     }
 }
 
-// 퀴즈 시작 버튼
+// ============================================================================
+// 🌟 [퀴즈 시작하기] 로직 개선: 이전 점수 이어받기 및 동일 이름 중복 체크
+// ============================================================================
 startBtn.addEventListener('click', async () => {
     const inputName = usernameInput.value.trim();
     if (!inputName) {
-        alert("학습자 이름을 입력해 주세요!");
+        alert("학습자 본인의 이름을 입력해 주세요!");
         usernameInput.focus();
         return;
     }
 
-    currentUser = inputName;
-    localStorage.setItem('bibleQuizUser', currentUser);
-    playerDisplay.innerText = currentUser;
+    startBtn.innerText = "사용자 확인 중...";
+    startBtn.disabled = true;
 
-    totalLives = 5;
+    try {
+        const userDocRef = doc(db, "users", inputName);
+        const userDocSnap = await getDoc(userDocRef);
+        const localSavedName = localStorage.getItem('bibleQuizUser');
 
-    startBtn.innerText = "로딩 중...";
-    if (quizDataList.length === 0) {
-        const querySnapshot = await getDocs(collection(db, "quizzes"));
-        querySnapshot.forEach((docSnap) => quizDataList.push(docSnap.data()));
-        quizDataList = shuffleArray(quizDataList);
+        if (userDocSnap.exists()) {
+            // Firestore에 이미 존재하는 이름일 때
+            if (localSavedName === inputName) {
+                // 본인이 기존에 접속하던 기기인 경우 ➔ 이전 점수 불러와서 이어하기!
+                const existingScore = userDocSnap.data().score || 0;
+                currentScore = existingScore;
+                alert(`반갑습니다, ${inputName}님!\n이전에 모으신 하늘보물 💎 ${currentScore}개부터 계속 이어갑니다.`);
+            } else {
+                // 다른 기기나 다른 사람이 이미 등록한 이름을 처음 입력한 경우 ➔ 중복 방지
+                alert(`[${inputName}] 이름은 이미 등록되어 있습니다.\n동명이인 구분을 위해 다른 이름(예: ${inputName}A, ${inputName}1 등)으로 입력해 주세요.`);
+                startBtn.innerText = "퀴즈 시작하기";
+                startBtn.disabled = false;
+                usernameInput.focus();
+                return;
+            }
+        } else {
+            // 데이터베이스에 처음 등록되는 신규 사용자
+            currentScore = 0;
+        }
+
+        currentUser = inputName;
+        localStorage.setItem('bibleQuizUser', currentUser);
+        playerDisplay.innerText = currentUser;
+
+        // 게임 시작 시 목숨 5개 리셋
+        totalLives = 5;
+
+        // 문제 리스트 로드 (비어있을 때만)
+        if (quizDataList.length === 0) {
+            startBtn.innerText = "문제 불러오는 중...";
+            const querySnapshot = await getDocs(collection(db, "quizzes"));
+            querySnapshot.forEach((docSnap) => quizDataList.push(docSnap.data()));
+            quizDataList = shuffleArray(quizDataList);
+        }
+        
+        // 현재 점수 저장 및 동기화
+        await saveUserScore(currentScore);
+
+        startBtn.innerText = "퀴즈 시작하기";
+        startBtn.disabled = false;
+        homeScreen.style.display = 'none';
+        quizScreen.style.display = 'block';
+        loadQuestion();
+
+    } catch (error) {
+        console.error("로그인 및 사용자 확인 오류:", error);
+        alert("사용자 정보를 확인하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        startBtn.innerText = "퀴즈 시작하기";
+        startBtn.disabled = false;
     }
-    
-    await saveUserScore(currentScore);
-
-    startBtn.innerText = "퀴즈 시작하기";
-    homeScreen.style.display = 'none';
-    quizScreen.style.display = 'block';
-    loadQuestion();
 });
 
 function loadQuestion() {
     if (currentQuizIndex >= quizDataList.length) {
-        alert(`준비된 모든 퀴즈를 완주하셨습니다! 다음 순환 출제를 시작합니다.`);
+        alert(`준비된 모든 퀴즈를 완주하셨습니다! 문제를 다시 섞어 순환 출제합니다.`);
         currentQuizIndex = 0;
         quizDataList = shuffleArray(quizDataList);
     }
@@ -357,7 +398,7 @@ async function handleChoice(selectedChoice, buttonElement, quiz) {
         updateScoreBoard();
         saveUserScore(currentScore);
 
-        // 🌟 수정된 보상 트리거 호출
+        // 9,999점 및 10,000점 도달 감지
         await checkRewardMilestones();
 
         const fullText = findVerseText(currentCorrectAnswer);
@@ -378,6 +419,7 @@ async function handleChoice(selectedChoice, buttonElement, quiz) {
             activeButtons.forEach(btn => btn.classList.add('show-hint'));
         }
 
+        // 문제를 3번 다 틀렸을 때만 목숨 1개 차감
         if (questionAttempts <= 0) {
             totalLives--;
             updateLivesIcon();
@@ -410,32 +452,31 @@ async function triggerGameOver() {
     }
 }
 
-// 🌟 개편된 보상 로직: 11,999점 깜짝 선물 & 12,000점 명예의 전당
+// 9,999점 깜짝 선물 & 10,000점 명예의 전당 영구 헌액
 async function checkRewardMilestones() {
-    // 1. 깜짝 선물 (11,999점 이상 도달 시 1회 발동)
+    // 1. 깜짝 선물 (9,999점 도달 시 1회 발동)
     if (currentScore >= SURPRISE_GIFT_SCORE && !hasReceivedSurpriseGift) {
         hasReceivedSurpriseGift = true;
         showRewardModal(
             "🎁✨", 
             "기적의 깜짝 선물 달성!", 
-            `놀랍습니다! 영적 보물 <strong>${currentScore.toLocaleString()}점</strong>을 달성하셨습니다!<br>수십 시간 동안의 인내와 성실한 연구가 맺은 빛나는 결실입니다.<br>명예의 전당까지 단 1걸음 남았습니다!`, 
+            `놀랍습니다! 영적 보물 <strong>${currentScore.toLocaleString()}점</strong>을 달성하셨습니다!<br>오랜 인내와 성실한 연구가 맺은 빛나는 결실입니다.<br>명예의 전당까지 단 1걸음 남았습니다!`, 
             `[ ${SURPRISE_GIFT_SCORE.toLocaleString()}점 전설의 깜짝 선물권 ]`,
             false
         );
         return;
     }
 
-    // 2. 명예의 전당 영구 헌액 (12,000점 이상 도달 시)
+    // 2. 명예의 전당 영구 헌액 (10,000점 도달 시)
     if (currentScore >= HALL_OF_FAME_TARGET_SCORE) {
         resetPendingAfterReward = true;
         
-        // Firestore에 영구 보존 등록
         await saveToHallOfFame();
 
         showRewardModal(
             "👑🏛️", 
             "명예의 전당 영구 헌액!", 
-            `경이로운 대기록 달성! 보물 <strong>${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점</strong>을 정복하셨습니다!<br><strong>명예의 전당에 회원님의 이름이 영구히 새겨졌습니다.</strong><br>확인을 누르시면 점수는 0점으로 새로 리셋되어 다회 완주에 도전하실 수 있습니다.`, 
+            `대기록 달성! 보물 <strong>${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점</strong>을 정복하셨습니다!<br><strong>명예의 전당에 회원님의 이름이 영구히 새겨졌습니다.</strong><br>확인을 누르시면 점수는 0점으로 새로 리셋되어 다회 완주에 도전하실 수 있습니다.`, 
             `[ ${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점 마스터 영구 헌액패 ]`,
             true
         );
@@ -472,7 +513,7 @@ closeRewardBtn.addEventListener('click', () => {
     if (resetPendingAfterReward) {
         currentScore = 0;
         resetPendingAfterReward = false;
-        hasReceivedSurpriseGift = false; // 새로운 사이클을 위해 플래그 초기화
+        hasReceivedSurpriseGift = false;
         updateScoreBoard();
         saveUserScore(currentScore);
         alert("점수가 0점으로 리셋되었습니다. 명예의 전당 다회 완주에 도전해 보세요!");
