@@ -1,0 +1,75 @@
+/* style.css */
+/* 전체 페이지 기본 설정 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+}
+
+body {
+    background-color: #FFF7ED; /* 아주 밝고 따뜻한 주황색 배경 */
+    color: #431407; /* 가독성을 높인 짙은 갈색 텍스트 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* 화면 전체 높이 사용 */
+}
+
+/* 화면 중앙 컨테이너 */
+.container {
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px; /* PC에서 보더라도 모바일 앱처럼 폭을 제한하여 깔끔하게 보임 */
+}
+
+/* JW 로고 동그라미 스타일 */
+.logo-circle {
+    width: 120px;
+    height: 120px;
+    background-color: #F97316; /* 메인 주황색 */
+    color: white;
+    border-radius: 50%; /* 완벽한 원형 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 효과 */
+}
+
+.logo-circle h1 {
+    font-size: 48px;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.2rem;
+    font-weight: normal;
+    margin-bottom: 5px;
+}
+
+.main-title {
+    color: #F97316;
+    font-size: 2rem;
+    margin-bottom: 40px;
+}
+
+/* 퀴즈 시작 버튼 스타일 */
+.btn-primary {
+    background-color: #F97316;
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 30px; /* 둥근 버튼 */
+    cursor: pointer; /* 마우스 올렸을 때 손가락 모양 */
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+/* 버튼에 마우스를 올렸을 때 약간 어두워지는 효과 */
+.btn-primary:hover {
+    background-color: #EA580C;
+}
