@@ -28,10 +28,10 @@
         .sub-title { font-size: 1.1rem; font-weight: normal; color: #431407; margin-bottom: 5px; }
         .main-title { font-size: 1.9rem; margin-bottom: 25px; color: #1F2937; font-weight: bold; }
 
-        /* 입력창 디자인 및 안내 문구 */
-        .input-group { margin-bottom: 20px; text-align: left; }
+        /* 입력창 디자인 */
+        .input-group { margin-bottom: 16px; text-align: left; }
         .input-label { display: block; font-size: 0.95rem; font-weight: bold; color: #431407; margin-bottom: 4px; }
-        .input-hint { display: block; font-size: 0.82rem; color: #EA580C; margin-bottom: 8px; font-weight: normal; }
+        .input-hint { display: block; font-size: 0.82rem; color: #EA580C; margin-bottom: 6px; font-weight: normal; }
         .text-input { width: 100%; padding: 14px; border: 1.5px solid #FDBA74; border-radius: 10px; font-size: 1.05rem; outline: none; background: #fff; }
         .text-input:focus { border-color: #F97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); }
 
@@ -110,14 +110,21 @@
         <h2 class="sub-title">그리스도인 생활을 위한</h2>
         <h1 class="main-title">성경 구절 퀴즈</h1>
 
+        <!-- 이름 입력창 -->
         <div class="input-group">
             <label class="input-label" for="username-input">학습자 이름</label>
-            <!-- 🌟 본인 이름 안내 문구 추가 -->
             <span class="input-hint">📌 반드시 본인 실명(이름)으로 적어주세요.</span>
             <input type="text" id="username-input" class="text-input" placeholder="예: 홍길동" maxlength="10">
         </div>
+
+        <!-- 🌟 4자리 비밀번호(자물쇠) 입력창 -->
+        <div class="input-group">
+            <label class="input-label" for="pin-input">🔒 비밀번호 (숫자 4자리)</label>
+            <span class="input-hint">기기 변경 시 본인 인증용으로 사용됩니다.</span>
+            <input type="password" id="pin-input" class="text-input" placeholder="숫자 4자리 입력" maxlength="4" inputmode="numeric">
+        </div>
         
-        <button id="start-btn" class="btn-primary" style="width: 100%; margin-bottom: 12px;">퀴즈 시작하기</button>
+        <button id="start-btn" class="btn-primary" style="width: 100%; margin-bottom: 12px; margin-top: 10px;">퀴즈 시작하기</button>
         <button id="view-ranking-btn" class="btn-secondary" style="width: 100%; margin-bottom: 15px;">🏆 순위표 & 명예의 전당</button>
         
         <button id="upload-btn" class="btn-primary" style="width: 100%; background-color: #10B981; font-size: 0.95rem; padding: 10px; display: none;">⚙️ DB에 새로운 데이터 덮어쓰기 (관리자)</button>
