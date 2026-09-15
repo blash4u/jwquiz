@@ -31,6 +31,7 @@ const uploadBtn = document.getElementById('upload-btn');
 const viewRankingBtn = document.getElementById('view-ranking-btn');
 const inQuizRankingBtn = document.getElementById('in-quiz-ranking-btn');
 const usernameInput = document.getElementById('username-input');
+const pinInput = document.getElementById('pin-input'); // 🌟 4자리 PIN 입력창
 const playerDisplay = document.getElementById('player-display');
 
 const choicesContainer = document.getElementById('choices-container');
@@ -73,10 +74,14 @@ let questionAttempts = 3;    // 해당 문항 내 남은 시도 횟수 (3, 2, 1)
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
 
-// 로컬 스토리지에 저장된 사용자 이름 자동 로드
+// 로컬 스토리지에 저장된 사용자 이름 및 PIN 자동 로드
 const savedName = localStorage.getItem('bibleQuizUser');
+const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName) {
     usernameInput.value = savedName;
+}
+if (savedPin) {
+    pinInput.value = savedPin;
 }
 
 // 관리자 모드 검사 (?admin=true)
@@ -128,7 +133,7 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-// 사용자 실시간 점수 Firestore 저장
+// 사용자 실시간 점수 Firestore 저장 (PIN 정보는 유지)
 async function saveUserScore(score) {
     if (!currentUser) return;
     try {
@@ -273,13 +278,22 @@ async function showHallOfFame() {
 }
 
 // ============================================================================
-// 🌟 [퀴즈 시작하기] 로직 개선: 이전 점수 이어받기 및 동일 이름 중복 체크
+// 🌟 [퀴즈 시작하기] 로직 개선: 4자리 비밀번호 자물쇠 인증 및 점수 복원
 // ============================================================================
 startBtn.addEventListener('click', async () => {
     const inputName = usernameInput.value.trim();
+    const inputPin = pinInput.value.trim();
+
     if (!inputName) {
         alert("학습자 본인의 이름을 입력해 주세요!");
         usernameInput.focus();
+        return;
+    }
+
+    // 4자리 숫자 검증
+    if (!/^\d{4}$/.test(inputPin)) {
+        alert("🔒 비밀번호는 반드시 '숫자 4자리'로 입력해 주세요!");
+        pinInput.focus();
         return;
     }
 
@@ -289,30 +303,47 @@ startBtn.addEventListener('click', async () => {
     try {
         const userDocRef = doc(db, "users", inputName);
         const userDocSnap = await getDoc(userDocRef);
-        const localSavedName = localStorage.getItem('bibleQuizUser');
 
         if (userDocSnap.exists()) {
-            // Firestore에 이미 존재하는 이름일 때
-            if (localSavedName === inputName) {
-                // 본인이 기존에 접속하던 기기인 경우 ➔ 이전 점수 불러와서 이어하기!
-                const existingScore = userDocSnap.data().score || 0;
-                currentScore = existingScore;
-                alert(`반갑습니다, ${inputName}님!\n이전에 모으신 하늘보물 💎 ${currentScore}개부터 계속 이어갑니다.`);
+            const userData = userDocSnap.data();
+            const storedPin = userData.pin;
+
+            // 1. 기존 계정에 이미 비밀번호가 설정되어 있는 경우
+            if (storedPin) {
+                if (storedPin !== inputPin) {
+                    alert(`🔒 비밀번호가 일치하지 않습니다!\n본인의 계정이 아니라면 다른 이름을 사용해 주세요.`);
+                    startBtn.innerText = "퀴즈 시작하기";
+                    startBtn.disabled = false;
+                    pinInput.focus();
+                    return;
+                }
             } else {
-                // 다른 기기나 다른 사람이 이미 등록한 이름을 처음 입력한 경우 ➔ 중복 방지
-                alert(`[${inputName}] 이름은 이미 등록되어 있습니다.\n동명이인 구분을 위해 다른 이름(예: ${inputName}A, ${inputName}1 등)으로 입력해 주세요.`);
-                startBtn.innerText = "퀴즈 시작하기";
-                startBtn.disabled = false;
-                usernameInput.focus();
-                return;
+                // 2. 이전에 생성되어 아직 PIN이 없는 기존 계정인 경우 ➔ 현재 입력한 PIN으로 업데이트 등록
+                await setDoc(userDocRef, { pin: inputPin }, { merge: true });
+                alert(`기존 계정에 비밀번호(4자리)가 안전하게 등록되었습니다!`);
             }
+
+            // 본인 인증 성공 ➔ 기존 누적 점수 복원
+            currentScore = userData.score || 0;
+            alert(`반갑습니다, ${inputName}님!\n이전에 모으신 하늘보물 💎 ${currentScore.toLocaleString()}개부터 계속 이어갑니다.`);
+
         } else {
-            // 데이터베이스에 처음 등록되는 신규 사용자
+            // 3. 신규 사용자 등록
             currentScore = 0;
+            await setDoc(userDocRef, {
+                username: inputName,
+                pin: inputPin,
+                score: 0,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
+            alert(`환영합니다, ${inputName}님!\n새로운 도전이 시작되었습니다.`);
         }
 
+        // 인증 성공 후 로컬 스토리지에 이름과 PIN 저장 (이 기기에서는 자동 로그인 유지)
         currentUser = inputName;
         localStorage.setItem('bibleQuizUser', currentUser);
+        localStorage.setItem('bibleQuizPin', inputPin);
         playerDisplay.innerText = currentUser;
 
         // 게임 시작 시 목숨 5개 리셋
@@ -325,9 +356,6 @@ startBtn.addEventListener('click', async () => {
             querySnapshot.forEach((docSnap) => quizDataList.push(docSnap.data()));
             quizDataList = shuffleArray(quizDataList);
         }
-        
-        // 현재 점수 저장 및 동기화
-        await saveUserScore(currentScore);
 
         startBtn.innerText = "퀴즈 시작하기";
         startBtn.disabled = false;
@@ -398,7 +426,6 @@ async function handleChoice(selectedChoice, buttonElement, quiz) {
         updateScoreBoard();
         saveUserScore(currentScore);
 
-        // 9,999점 및 10,000점 도달 감지
         await checkRewardMilestones();
 
         const fullText = findVerseText(currentCorrectAnswer);
@@ -454,7 +481,6 @@ async function triggerGameOver() {
 
 // 9,999점 깜짝 선물 & 10,000점 명예의 전당 영구 헌액
 async function checkRewardMilestones() {
-    // 1. 깜짝 선물 (9,999점 도달 시 1회 발동)
     if (currentScore >= SURPRISE_GIFT_SCORE && !hasReceivedSurpriseGift) {
         hasReceivedSurpriseGift = true;
         showRewardModal(
@@ -467,7 +493,6 @@ async function checkRewardMilestones() {
         return;
     }
 
-    // 2. 명예의 전당 영구 헌액 (10,000점 도달 시)
     if (currentScore >= HALL_OF_FAME_TARGET_SCORE) {
         resetPendingAfterReward = true;
         
