@@ -7,21 +7,19 @@ import { firebaseConfig } from "./firebase-config.js";
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
 
-// Firebase 초기화
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 1만 점 헌액 및 9,999점 선물 상수
 const HALL_OF_FAME_TARGET_SCORE = 10000;
 const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1;
 
-// 화면 컨테이너 참조
+// 화면 컨테이너
 const authScreen = document.getElementById('auth-screen');
 const hubScreen = document.getElementById('hub-screen');
 const quizScreen = document.getElementById('quiz-screen');
 const walkScreen = document.getElementById('walk-screen');
 
-// 인증 관련 DOM 요소
+// 인증 요소
 const loginBtn = document.getElementById('login-btn');
 const uploadBtn = document.getElementById('upload-btn');
 const viewRankingBtn = document.getElementById('view-ranking-btn');
@@ -31,21 +29,21 @@ const usernameInput = document.getElementById('username-input');
 const pinInput = document.getElementById('pin-input');
 const hubLogoutBtn = document.getElementById('hub-logout-btn');
 
-// 허브 화면 DOM 요소
+// 허브 요소
 const hubPlayerDisplay = document.getElementById('hub-player-display');
 const hubScoreText = document.getElementById('hub-score-text');
 const hubLivesBadge = document.getElementById('hub-lives-badge');
 const modeQuizBtn = document.getElementById('mode-quiz-btn');
 const modeWalkBtn = document.getElementById('mode-walk-btn');
 
-// 5지선다 퀴즈 DOM 요소
+// 퀴즈 요소
 const playerDisplay = document.getElementById('player-display');
 const choicesContainer = document.getElementById('choices-container');
 const feedbackContainer = document.getElementById('feedback-container');
 const nextBtn = document.getElementById('next-btn');
 const backToHubFromQuiz = document.getElementById('back-to-hub-from-quiz');
 
-// 『진리의 빛 안에서』 DOM 요소
+// 『진리의 빛 안에서』 요소
 const walkPlayerDisplay = document.getElementById('walk-player-display');
 const walkReadingRange = document.getElementById('walk-reading-range');
 const walkStatusTag = document.getElementById('walk-status-tag');
@@ -56,10 +54,11 @@ const puzzleDropZone = document.getElementById('puzzle-drop-zone');
 const puzzleTileZone = document.getElementById('puzzle-tile-zone');
 const puzzleResetBtn = document.getElementById('puzzle-reset-btn');
 const puzzleCheckBtn = document.getElementById('puzzle-check-btn');
+const puzzleScoreBadge = document.getElementById('puzzle-score-badge');
 const walkMeditationList = document.getElementById('walk-meditation-list');
 const backToHubFromWalk = document.getElementById('back-to-hub-from-walk');
 
-// 모달 관련 DOM 요소
+// 모달 요소
 const rewardModal = document.getElementById('reward-modal');
 const rewardModalIcon = document.getElementById('reward-modal-icon');
 const rewardModalTitle = document.getElementById('reward-modal-title');
@@ -78,35 +77,34 @@ const gameoverModal = document.getElementById('gameover-modal');
 const gameoverRankBox = document.getElementById('gameover-rank-box');
 const gameoverHomeBtn = document.getElementById('gameover-home-btn');
 
-// 전역 게임 상태 변수
+// 전역 게임 상태
 let currentUser = "";
 let quizDataList = [];
 let currentQuizIndex = 0;
 let currentScore = 0;
-let totalLives = 5;          // 남은 라이프 (Firestore 연동)
-let questionAttempts = 3;    // 문항 내 시도 횟수 (3, 2, 1)
+let totalLives = 5;
+let questionAttempts = 3;
 let currentCorrectAnswer = "";
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
 
-// 일용할 성구 퍼즐 상태 변수
+// 퍼즐 상태 (단어 조각 및 시도 횟수)
 let currentWalkPlan = walkInData[0];
-let selectedTiles = [];
-let shuffledTiles = [];
+let selectedTiles = []; // 조립창에 들어간 타일 객체 배열 { text, element }
+let walkPuzzleAttempts = 0; // 퍼즐 제출 시도 횟수
 
-// 로컬 스토리지에서 자동 로그인 입력값 복원
+// 자동 로그인 복원
 const savedName = localStorage.getItem('bibleQuizUser');
 const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName) usernameInput.value = savedName;
 if (savedPin) pinInput.value = savedPin;
 
-// 관리자 파라미터 체크 (?admin=true)
+// 관리자 파라미터 체크
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('admin') === 'true' && uploadBtn) {
     uploadBtn.style.display = "block";
 }
 
-// DB 업데이트 버튼 이벤트 (관리자용)
 if (uploadBtn) {
     uploadBtn.addEventListener('click', async () => {
         uploadBtn.innerText = "업로드 중...";
@@ -149,7 +147,6 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-// Firestore에 점수와 라이프 영구 저장
 async function saveUserData(score, lives) {
     if (!currentUser) return;
     try {
@@ -164,7 +161,6 @@ async function saveUserData(score, lives) {
     }
 }
 
-// 명예의 전당 영구 기록
 async function saveToHallOfFame() {
     if (!currentUser) return;
     try {
@@ -183,7 +179,6 @@ async function saveToHallOfFame() {
     }
 }
 
-// 현재 사용자 실시간 순위 조회
 async function fetchUserRank() {
     try {
         const q = query(collection(db, "users"), orderBy("score", "desc"));
@@ -200,7 +195,7 @@ async function fetchUserRank() {
 }
 
 // -------------------------------------------------------------
-// [인증 및 허브 화면 제어]
+// [인증 및 허브 제어]
 // -------------------------------------------------------------
 loginBtn.addEventListener('click', async () => {
     const inputName = usernameInput.value.trim();
@@ -290,7 +285,6 @@ hubLogoutBtn.addEventListener('click', () => {
     authScreen.style.display = 'block';
 });
 
-// 모드 1 (퀴즈) 시작
 modeQuizBtn.addEventListener('click', async () => {
     if (quizDataList.length === 0) {
         const querySnapshot = await getDocs(collection(db, "quizzes"));
@@ -302,7 +296,6 @@ modeQuizBtn.addEventListener('click', async () => {
     loadQuestion();
 });
 
-// 모드 2 (진리의 빛 안에서) 시작
 modeWalkBtn.addEventListener('click', () => {
     hubScreen.style.display = 'none';
     walkScreen.style.display = 'block';
@@ -394,7 +387,6 @@ async function handleChoice(choice, btn, quiz) {
         btn.classList.add("wrong");
         btn.disabled = true;
 
-        // 3번째 시도 시 전체 툴팁 활성화
         if (questionAttempts === 1) {
             const allBtns = choicesContainer.querySelectorAll('.choice-btn');
             allBtns.forEach(b => b.classList.add('show-hint'));
@@ -428,7 +420,6 @@ nextBtn.addEventListener('click', () => {
     loadQuestion();
 });
 
-// 라이프 0개 게임 오버 처리
 async function triggerGameOver() {
     choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
     
@@ -449,9 +440,10 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 로직]
+// [모드 2: 『진리의 빛 안에서』 일용할 성구 & 인터랙티브 퍼즐]
 // -------------------------------------------------------------
 function setupWalkMode() {
+    walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
     wolDeeplink.href = currentWalkPlan.wol_url;
 
@@ -460,7 +452,7 @@ function setupWalkMode() {
         walkStatusTag.style.background = "#DCFCE7";
         walkStatusTag.style.color = "#15803D";
         wolDeeplink.classList.add('completed');
-        wolDeeplink.innerHTML = "<span>✓ WOL 성구 읽음 (다시 열기)</span>";
+        wolDeeplink.innerHTML = "<span>✓ 날마다 성경을 검토함 읽음 (다시 열기)</span>";
     };
 
     walkMeditationList.innerHTML = '';
@@ -470,7 +462,19 @@ function setupWalkMode() {
         walkMeditationList.appendChild(li);
     });
 
+    walkPuzzleAttempts = 0; // 시도 횟수 초기화
+    updatePuzzleBadge();
     setupWordPuzzle();
+}
+
+function updatePuzzleBadge() {
+    if (walkPuzzleAttempts === 0) {
+        puzzleScoreBadge.innerText = "첫 성공 시 💎 10점";
+    } else if (walkPuzzleAttempts === 1) {
+        puzzleScoreBadge.innerText = "이번 성공 시 💎 8점";
+    } else {
+        puzzleScoreBadge.innerText = "성공 시 💎 5점";
+    }
 }
 
 function setupWordPuzzle() {
@@ -483,51 +487,101 @@ function setupWordPuzzle() {
     placeholder.id = "drop-zone-placeholder";
     placeholder.style.fontSize = "0.85rem";
     placeholder.style.color = "#9CA3AF";
-    placeholder.innerText = "아래 단어 조각을 순서대로 터치하여 성구를 완성하세요.";
+    placeholder.innerText = "아래 단어 조각을 터치해 올바른 순서로 완성하세요.";
     puzzleDropZone.appendChild(placeholder);
 
-    shuffledTiles = shuffleArray([...currentWalkPlan.memory_verse.puzzle_tiles]);
+    const shuffled = shuffleArray([...currentWalkPlan.memory_verse.puzzle_tiles]);
 
-    shuffledTiles.forEach((tileText) => {
+    shuffled.forEach((tileText) => {
         const tile = document.createElement('div');
         tile.className = "word-tile";
         tile.innerText = tileText;
-        tile.onclick = () => handleTileClick(tile, tileText);
+        tile.onclick = () => handleTileFromBank(tile, tileText);
         puzzleTileZone.appendChild(tile);
     });
 }
 
-function handleTileClick(tileElement, tileText) {
+// 보관함에서 조립창으로 투입
+function handleTileFromBank(tileElement, tileText) {
     const placeholder = document.getElementById('drop-zone-placeholder');
     if (placeholder) placeholder.remove();
 
-    if (tileElement.classList.contains('placed')) {
-        tileElement.classList.remove('placed');
-        selectedTiles = selectedTiles.filter(t => t.element !== tileElement);
-        tileElement.remove();
-        puzzleTileZone.appendChild(tileElement);
+    tileElement.classList.add('placed');
+    tileElement.innerHTML = `${tileText} <span class="tile-arrow">⇄</span>`;
+    
+    // 조립창 내부 클릭 시: 위치 이동 핸들러로 전환
+    tileElement.onclick = () => handleTileInDropZone(tileElement, tileText);
+    
+    puzzleDropZone.appendChild(tileElement);
+    selectedTiles.push({ text: tileText, element: tileElement });
+}
+
+// 🌟 조립창 내부 조각 터치 시: 박스 안에서 위치 이동(다음 위치로 이동하거나 길게 눌러 회수)
+function handleTileInDropZone(tileElement, tileText) {
+    const currentIndex = selectedTiles.findIndex(t => t.element === tileElement);
+    if (currentIndex === -1) return;
+
+    if (selectedTiles.length > 1) {
+        // 다음 위치의 조각과 위치 맞바꾸기 (마지막 조각이면 맨 앞으로 순환 이동)
+        const nextIndex = (currentIndex + 1) % selectedTiles.length;
+        
+        // 배열 내 swap
+        const temp = selectedTiles[currentIndex];
+        selectedTiles[currentIndex] = selectedTiles[nextIndex];
+        selectedTiles[nextIndex] = temp;
+
+        // DOM 재배치
+        puzzleDropZone.innerHTML = '';
+        selectedTiles.forEach(t => puzzleDropZone.appendChild(t.element));
     } else {
-        tileElement.classList.add('placed');
-        puzzleDropZone.appendChild(tileElement);
-        selectedTiles.push({ text: tileText, element: tileElement });
+        // 조각이 1개뿐일 때 터치하면 보관함으로 회수
+        returnTileToBank(tileElement, tileText);
     }
 }
 
-puzzleResetBtn.addEventListener('click', setupWordPuzzle);
+// 보관함으로 조각 반환
+function returnTileToBank(tileElement, tileText) {
+    tileElement.classList.remove('placed');
+    tileElement.innerText = tileText;
+    tileElement.onclick = () => handleTileFromBank(tileElement, tileText);
 
+    selectedTiles = selectedTiles.filter(t => t.element !== tileElement);
+    tileElement.remove();
+    puzzleTileZone.appendChild(tileElement);
+
+    if (selectedTiles.length === 0) {
+        puzzleDropZone.innerHTML = `<span style="font-size: 0.85rem; color: #9CA3AF;" id="drop-zone-placeholder">아래 단어 조각을 터치해 올바른 순서로 완성하세요.</span>`;
+    }
+}
+
+puzzleResetBtn.addEventListener('click', () => {
+    setupWordPuzzle();
+});
+
+// 🌟 차등 배점 적용 퍼즐 검증 (1회 10점, 2회 8점, 3회 이상 5점)
 puzzleCheckBtn.addEventListener('click', async () => {
     const correctTiles = currentWalkPlan.memory_verse.puzzle_tiles;
-    const isCorrect = (selectedTiles.length === correctTiles.length) &&
-                      selectedTiles.every((t, i) => t.text === correctTiles[i]);
+    const isFull = (selectedTiles.length === correctTiles.length);
+    const isCorrect = isFull && selectedTiles.every((t, i) => t.text === correctTiles[i]);
 
     if (isCorrect) {
-        currentScore += 5;
+        let earnedPoints = 5;
+        if (walkPuzzleAttempts === 0) {
+            earnedPoints = 10;
+        } else if (walkPuzzleAttempts === 1) {
+            earnedPoints = 8;
+        }
+
+        currentScore += earnedPoints;
         updateScoreBoard();
         await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
-        alert(`🎉 완벽합니다! 오늘의 일용할 성구를 바르게 암송하셨습니다.\n하늘보물 💎 5점을 획득하셨습니다.\n\n"${currentWalkPlan.memory_verse.full_text}"`);
+
+        alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 점수: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
     } else {
-        alert("아직 단어 조각의 순서가 맞지 않습니다. 다시 배열해 보세요!");
+        walkPuzzleAttempts++;
+        updatePuzzleBadge();
+        alert(`순서가 아직 맞지 않습니다. (조립 박스 안의 조각을 터치해 위치를 조정해 보세요!)\n현재 남은 기회 보너스: ${walkPuzzleAttempts === 1 ? '💎 8점' : '💎 5점'}`);
     }
 });
 
