@@ -87,6 +87,15 @@
         .walk-read-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #0284C7; color: #fff; border: none; padding: 13px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; margin-top: 8px; }
         .walk-read-btn.completed { background: #059669; }
         
+        /* 날짜 및 달력 아이콘 스타일 */
+        .date-picker-wrap { display: inline-flex; align-items: center; gap: 6px; }
+        .calendar-icon-btn {
+            background: #ffffff; border: 1px solid #FDBA74; border-radius: 50%; width: 28px; height: 28px;
+            display: inline-flex; justify-content: center; align-items: center; cursor: pointer; font-size: 0.95rem;
+            transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .calendar-icon-btn:hover { background-color: #FFEDD5; border-color: #F97316; transform: scale(1.05); }
+
         /* 조립 영역 및 타일 */
         .puzzle-drop-zone { min-height: 85px; background: #FFF7ED; border: 2px dashed #FDBA74; border-radius: 10px; padding: 10px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 8px; }
         .puzzle-tile-zone { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; min-height: 50px; }
@@ -209,14 +218,19 @@
         <div class="score-board">
             <div class="user-info-area">
                 <span class="user-badge" id="walk-player-display">학습자</span>
-                <span id="walk-streak-badge">☀️ 일용할 성구</span>
+                <!-- 🌟 날짜 배지 및 달력 아이콘 버튼 -->
+                <div class="date-picker-wrap">
+                    <span id="walk-streak-badge">☀️ 일용할 성구</span>
+                    <button id="calendar-trigger-btn" class="calendar-icon-btn" title="다른 날짜 성구 선택">📅</button>
+                    <input type="date" id="walk-date-picker" style="display: none;" min="2026-09-17" max="2026-12-31">
+                </div>
             </div>
             <button id="back-to-hub-from-walk" class="btn-mini" style="border: 1px solid #9CA3AF; color: #4B5563;">⌂ 메뉴</button>
         </div>
 
         <div class="walk-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 id="walk-reading-range" style="font-size: 1.15rem; color: #0369A1;">잠언 3:5, 6</h3>
+                <h3 id="walk-reading-range" style="font-size: 1.15rem; color: #0369A1;">오늘의 성구 검토</h3>
                 <span id="walk-status-tag" style="font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; background: #FEF3C7; color: #B45309;">읽기 전</span>
             </div>
             
@@ -225,7 +239,6 @@
                 <p id="walk-goal-question" style="font-size: 0.95rem; color: #78350F; line-height: 1.45;"></p>
             </div>
 
-            <!-- 🌟 WOL 문구 삭제 반영 -->
             <a id="wol-deeplink" href="https://wol.jw.org/ko/wol/h/r8/lp-ko" class="walk-read-btn" target="_blank" rel="noopener noreferrer">
                 <span>📖 날마다 성경을 검토함 읽기</span>
             </a>
@@ -238,7 +251,6 @@
             </div>
             <p id="puzzle-verse-ref" style="font-size: 0.88rem; color: #EA580C; font-weight: bold; margin-bottom: 10px;"></p>
             
-            <!-- 조립 영역 (박스 안 이동 지원) -->
             <p style="font-size: 0.78rem; color: #6B7280; margin-bottom: 4px;">💡 조립 박스 안의 조각을 터치하면 다음 자리로 이동합니다.</p>
             <div class="puzzle-drop-zone" id="puzzle-drop-zone">
                 <span style="font-size: 0.85rem; color: #9CA3AF;" id="drop-zone-placeholder">아래 단어 조각을 터치해 올바른 순서로 완성하세요.</span>
