@@ -3349,4 +3349,3 @@ export const walkInData = [
     ]
   }
 ];
-];
