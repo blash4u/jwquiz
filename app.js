@@ -93,13 +93,23 @@ let resetPendingAfterReward = false;
 let currentWalkPlan = null;
 let selectedTiles = [];
 let walkPuzzleAttempts = 0;
-let isPuzzleSolved = false; // 🌟 중복 점수 수령 방지 플래그
+let isPuzzleSolved = false;
+let userLastSolvedDailyDate = ""; // 오늘 퍼즐 완수 일자 (YYYY-MM-DD)
 
 // 자동 로그인 복원
 const savedName = localStorage.getItem('bibleQuizUser');
 const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName) usernameInput.value = savedName;
 if (savedPin) pinInput.value = savedPin;
+
+// 오늘 날짜 문자열 반환 헬퍼 (예: "2026-09-17")
+function getTodayDateString() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 // 관리자 파라미터 체크
 const urlParams = new URLSearchParams(window.location.search);
@@ -149,15 +159,22 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-async function saveUserData(score, lives) {
+// 사용자 데이터 저장 시 오늘 완료 일자(lastSolvedDailyDate)도 함께 관리
+async function saveUserData(score, lives, solvedDate = null) {
     if (!currentUser) return;
     try {
-        await setDoc(doc(db, "users", currentUser), {
+        const updatePayload = {
             username: currentUser,
             score: score,
             lives: lives,
             updatedAt: new Date()
-        }, { merge: true });
+        };
+        if (solvedDate) {
+            updatePayload.lastSolvedDailyDate = solvedDate;
+            userLastSolvedDailyDate = solvedDate;
+            localStorage.setItem(`lastSolvedDailyDate_${currentUser}`, solvedDate);
+        }
+        await setDoc(doc(db, "users", currentUser), updatePayload, { merge: true });
     } catch (e) {
         console.error("데이터 저장 실패:", e);
     }
@@ -235,6 +252,7 @@ loginBtn.addEventListener('click', async () => {
             
             currentScore = userData.score || 0;
             totalLives = (userData.lives !== undefined) ? userData.lives : 5;
+            userLastSolvedDailyDate = userData.lastSolvedDailyDate || localStorage.getItem(`lastSolvedDailyDate_${inputName}`) || "";
             
             if (totalLives <= 0) {
                 totalLives = 5;
@@ -243,11 +261,13 @@ loginBtn.addEventListener('click', async () => {
         } else {
             currentScore = 0;
             totalLives = 5;
+            userLastSolvedDailyDate = "";
             await setDoc(userDocRef, {
                 username: inputName,
                 pin: inputPin,
                 score: 0,
                 lives: 5,
+                lastSolvedDailyDate: "",
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
@@ -442,7 +462,7 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 일용할 성구 & 퍼즐 (버그 수정)]
+// [모드 2: 『진리의 빛 안에서』 중복 방지 강화 로직]
 // -------------------------------------------------------------
 function getTodayWalkPlan() {
     const today = new Date();
@@ -455,6 +475,10 @@ function getTodayWalkPlan() {
 
 function setupWalkMode() {
     currentWalkPlan = getTodayWalkPlan();
+    const todayStr = getTodayDateString();
+
+    // 🌟 오늘 날짜에 이미 완료했는지 영구 기록 검사
+    isPuzzleSolved = (userLastSolvedDailyDate === todayStr);
 
     walkStreakBadge.innerText = `☀️ ${currentWalkPlan.date_display || "오늘의 성구"}`;
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
@@ -476,16 +500,23 @@ function setupWalkMode() {
     });
 
     walkPuzzleAttempts = 0;
-    isPuzzleSolved = false; // 🌟 진입 시 완료 상태 초기화
-    puzzleCheckBtn.disabled = false;
-    puzzleCheckBtn.innerText = "완성 확인";
-    updatePuzzleBadge();
+
+    if (isPuzzleSolved) {
+        puzzleCheckBtn.disabled = true;
+        puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
+        puzzleScoreBadge.innerText = "보물 획득 완료 ✓";
+    } else {
+        puzzleCheckBtn.disabled = false;
+        puzzleCheckBtn.innerText = "완성 확인";
+        updatePuzzleBadge();
+    }
+
     setupWordPuzzle();
 }
 
 function updatePuzzleBadge() {
     if (isPuzzleSolved) {
-        puzzleScoreBadge.innerText = "획득 완료 ✓";
+        puzzleScoreBadge.innerText = "보물 획득 완료 ✓";
         return;
     }
     if (walkPuzzleAttempts === 0) {
@@ -522,7 +553,7 @@ function setupWordPuzzle() {
 }
 
 function handleTileFromBank(tileElement, tileText) {
-    if (isPuzzleSolved) return; // 이미 정답을 맞춘 경우 조작 차단
+    if (isPuzzleSolved) return;
 
     const placeholder = document.getElementById('drop-zone-placeholder');
     if (placeholder) placeholder.remove();
@@ -536,7 +567,7 @@ function handleTileFromBank(tileElement, tileText) {
 }
 
 function handleTileInDropZone(tileElement, tileText) {
-    if (isPuzzleSolved) return; // 이미 정답을 맞춘 경우 조작 차단
+    if (isPuzzleSolved) return;
 
     const currentIndex = selectedTiles.findIndex(t => t.element === tileElement);
     if (currentIndex === -1) return;
@@ -572,7 +603,6 @@ function returnTileToBank(tileElement, tileText) {
 }
 
 puzzleResetBtn.addEventListener('click', () => {
-    // 🌟 이미 정답을 맞춘 상태에서 다시 맞추기를 누를 경우: 점수 중복 수령 없이 연습 모드로 동작
     setupWordPuzzle();
     if (!isPuzzleSolved) {
         walkPuzzleAttempts = 0;
@@ -580,11 +610,15 @@ puzzleResetBtn.addEventListener('click', () => {
     }
 });
 
-// 🌟 [버그 수정 핵심] 완성 확인 버튼 클릭 이벤트
+// 🌟 [완전 차단] 하루 단 1회 보물 획득 보장
 puzzleCheckBtn.addEventListener('click', async () => {
-    // 1. 이미 오늘 정답을 맞춘 상태라면 중복 보상 지급 차단
-    if (isPuzzleSolved) {
-        alert("오늘의 일용할 성구 암기 보상을 이미 획득하셨습니다! 내일 새로운 성구에 도전해 보세요. 😊");
+    const todayStr = getTodayDateString();
+
+    // 1차 검증: 상태 플래그 및 영구 일자 대조
+    if (isPuzzleSolved || userLastSolvedDailyDate === todayStr) {
+        alert("오늘의 일용할 성구 보물을 이미 획득하셨습니다! 내일 새로운 성구에 도전해 보세요. 😊");
+        puzzleCheckBtn.disabled = true;
+        puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
         return;
     }
 
@@ -593,8 +627,10 @@ puzzleCheckBtn.addEventListener('click', async () => {
     const isCorrect = isFull && selectedTiles.every((t, i) => t.text === correctTiles[i]);
 
     if (isCorrect) {
-        // 2. 중복 방지 플래그 즉시 활성화
+        // 즉시 플래그 및 버튼 잠금 (연타 방지)
         isPuzzleSolved = true;
+        puzzleCheckBtn.disabled = true;
+        puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
 
         let earnedPoints = 5;
         if (walkPuzzleAttempts === 0) {
@@ -603,18 +639,16 @@ puzzleCheckBtn.addEventListener('click', async () => {
             earnedPoints = 8;
         }
 
-        // 3. 점수 1회 가산 및 DB 동기화
         currentScore += earnedPoints;
         updateScoreBoard();
-        await saveUserData(currentScore, totalLives);
+
+        // Firestore 및 로컬 스토리지에 '오늘 일자'를 저장하여 재접속해도 중복 방지
+        await saveUserData(currentScore, totalLives, todayStr);
         await checkRewardMilestones();
 
-        // 4. 버튼 UI를 '완료' 상태로 잠금
-        puzzleCheckBtn.disabled = true;
-        puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
         updatePuzzleBadge();
 
-        alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 점수: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
+        alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 보물: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
     } else {
         walkPuzzleAttempts++;
         updatePuzzleBadge();
