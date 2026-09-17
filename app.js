@@ -59,6 +59,10 @@ const walkMeditationList = document.getElementById('walk-meditation-list');
 const backToHubFromWalk = document.getElementById('back-to-hub-from-walk');
 const walkStreakBadge = document.getElementById('walk-streak-badge');
 
+// 🌟 신규 달력 피커 요소
+const calendarTriggerBtn = document.getElementById('calendar-trigger-btn');
+const walkDatePicker = document.getElementById('walk-date-picker');
+
 // 모달 요소
 const rewardModal = document.getElementById('reward-modal');
 const rewardModalIcon = document.getElementById('reward-modal-icon');
@@ -95,6 +99,7 @@ let selectedTiles = [];
 let walkPuzzleAttempts = 0;
 let isPuzzleSolved = false;
 let userLastSolvedDailyDate = ""; // 오늘 퍼즐 완수 일자 (YYYY-MM-DD)
+let viewingPlanDateStr = "";      // 현재 조회 중인 날짜 (YYYY-MM-DD)
 
 // 자동 로그인 복원
 const savedName = localStorage.getItem('bibleQuizUser');
@@ -159,7 +164,6 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-// 사용자 데이터 저장 시 오늘 완료 일자(lastSolvedDailyDate)도 함께 관리
 async function saveUserData(score, lives, solvedDate = null) {
     if (!currentUser) return;
     try {
@@ -462,27 +466,55 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 중복 방지 강화 로직]
+// [모드 2: 『진리의 빛 안에서』 날짜 선택 및 중복 방지 로직]
 // -------------------------------------------------------------
-function getTodayWalkPlan() {
-    const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const currentDay = today.getDate();
 
-    const foundPlan = walkInData.find(item => item.month === currentMonth && item.day === currentDay);
-    return foundPlan ? foundPlan : walkInData[0];
+// 날짜 기준 플랜 검색 함수
+function findWalkPlanByDate(month, day) {
+    const found = walkInData.find(item => item.month === month && item.day === day);
+    return found || walkInData[0];
 }
 
-function setupWalkMode() {
-    currentWalkPlan = getTodayWalkPlan();
+// 기본 오늘 날짜 성구 로드
+function getTodayWalkPlan() {
+    const today = new Date();
+    const m = today.getMonth() + 1;
+    const d = today.getDate();
+    return findWalkPlanByDate(m, d);
+}
+
+// 『진리의 빛 안에서』 초기화 및 렌더링
+function setupWalkMode(customDateStr = null) {
     const todayStr = getTodayDateString();
 
-    // 🌟 오늘 날짜에 이미 완료했는지 영구 기록 검사
-    isPuzzleSolved = (userLastSolvedDailyDate === todayStr);
+    if (customDateStr) {
+        // 사용자가 달력으로 날짜를 선택한 경우
+        viewingPlanDateStr = customDateStr;
+        const [y, m, d] = customDateStr.split('-').map(Number);
+        currentWalkPlan = findWalkPlanByDate(m, d);
+    } else {
+        // 기본 오늘 날짜 진입
+        viewingPlanDateStr = todayStr;
+        currentWalkPlan = getTodayWalkPlan();
+    }
 
-    walkStreakBadge.innerText = `☀️ ${currentWalkPlan.date_display || "오늘의 성구"}`;
+    // 날짜 피커 값 동기화
+    walkDatePicker.value = viewingPlanDateStr;
+
+    // 완료 여부 검사: 오늘 날짜를 조회 중이고, 오늘 이미 완료한 기록이 있는 경우에만 완료 상태
+    const isToday = (viewingPlanDateStr === todayStr);
+    isPuzzleSolved = isToday && (userLastSolvedDailyDate === todayStr);
+
+    walkStreakBadge.innerText = `☀️ ${currentWalkPlan.date_display || "성구 묵상"}`;
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
+
+    // 상태 태그 초기화
+    walkStatusTag.innerText = "읽기 전";
+    walkStatusTag.style.background = "#FEF3C7";
+    walkStatusTag.style.color = "#B45309";
+    wolDeeplink.classList.remove('completed');
+    wolDeeplink.innerHTML = "<span>📖 날마다 성경을 검토함 읽기</span>";
 
     wolDeeplink.onclick = () => {
         walkStatusTag.innerText = "읽기 완료 ✓";
@@ -505,6 +537,10 @@ function setupWalkMode() {
         puzzleCheckBtn.disabled = true;
         puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
         puzzleScoreBadge.innerText = "보물 획득 완료 ✓";
+    } else if (!isToday) {
+        puzzleCheckBtn.disabled = false;
+        puzzleCheckBtn.innerText = "맞추기 확인 (자유 복습)";
+        puzzleScoreBadge.innerText = "자유 묵상 모드";
     } else {
         puzzleCheckBtn.disabled = false;
         puzzleCheckBtn.innerText = "완성 확인";
@@ -514,7 +550,33 @@ function setupWalkMode() {
     setupWordPuzzle();
 }
 
+// 🌟 달력 아이콘 클릭 및 날짜 변경 이벤트 바인딩
+calendarTriggerBtn.addEventListener('click', () => {
+    try {
+        if (typeof walkDatePicker.showPicker === 'function') {
+            walkDatePicker.showPicker();
+        } else {
+            walkDatePicker.click();
+        }
+    } catch (e) {
+        walkDatePicker.style.display = "inline-block";
+        walkDatePicker.focus();
+    }
+});
+
+walkDatePicker.addEventListener('change', (e) => {
+    const selectedDate = e.target.value;
+    if (selectedDate) {
+        setupWalkMode(selectedDate);
+    }
+});
+
 function updatePuzzleBadge() {
+    const todayStr = getTodayDateString();
+    if (viewingPlanDateStr !== todayStr) {
+        puzzleScoreBadge.innerText = "자유 묵상 모드";
+        return;
+    }
     if (isPuzzleSolved) {
         puzzleScoreBadge.innerText = "보물 획득 완료 ✓";
         return;
@@ -610,12 +672,13 @@ puzzleResetBtn.addEventListener('click', () => {
     }
 });
 
-// 🌟 [완전 차단] 하루 단 1회 보물 획득 보장
+// 완성 확인 버튼 클릭 이벤트 (오늘 날짜 1회만 점수 지급, 다른 날짜는 복습 모드)
 puzzleCheckBtn.addEventListener('click', async () => {
     const todayStr = getTodayDateString();
+    const isToday = (viewingPlanDateStr === todayStr);
 
-    // 1차 검증: 상태 플래그 및 영구 일자 대조
-    if (isPuzzleSolved || userLastSolvedDailyDate === todayStr) {
+    // 1. 오늘 날짜인데 이미 획득한 경우 차단
+    if (isToday && (isPuzzleSolved || userLastSolvedDailyDate === todayStr)) {
         alert("오늘의 일용할 성구 보물을 이미 획득하셨습니다! 내일 새로운 성구에 도전해 보세요. 😊");
         puzzleCheckBtn.disabled = true;
         puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
@@ -627,32 +690,34 @@ puzzleCheckBtn.addEventListener('click', async () => {
     const isCorrect = isFull && selectedTiles.every((t, i) => t.text === correctTiles[i]);
 
     if (isCorrect) {
-        // 즉시 플래그 및 버튼 잠금 (연타 방지)
-        isPuzzleSolved = true;
-        puzzleCheckBtn.disabled = true;
-        puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
+        if (isToday) {
+            // [오늘의 성구 완료 시] 보물 지급 및 잠금
+            isPuzzleSolved = true;
+            puzzleCheckBtn.disabled = true;
+            puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
 
-        let earnedPoints = 5;
-        if (walkPuzzleAttempts === 0) {
-            earnedPoints = 10;
-        } else if (walkPuzzleAttempts === 1) {
-            earnedPoints = 8;
+            let earnedPoints = 5;
+            if (walkPuzzleAttempts === 0) {
+                earnedPoints = 10;
+            } else if (walkPuzzleAttempts === 1) {
+                earnedPoints = 8;
+            }
+
+            currentScore += earnedPoints;
+            updateScoreBoard();
+            await saveUserData(currentScore, totalLives, todayStr);
+            await checkRewardMilestones();
+            updatePuzzleBadge();
+
+            alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 보물: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
+        } else {
+            // [다른 날짜 성구 자유 복습 시] 점수 변동 없이 칭찬 메시지만 출력
+            alert(`🎉 완벽합니다! [${currentWalkPlan.date_display}] 성구를 바르게 암송하셨습니다.\n(자유 복습 모드에서는 보물이 추가되지 않습니다. 내일 성구도 기대해 주세요!)`);
         }
-
-        currentScore += earnedPoints;
-        updateScoreBoard();
-
-        // Firestore 및 로컬 스토리지에 '오늘 일자'를 저장하여 재접속해도 중복 방지
-        await saveUserData(currentScore, totalLives, todayStr);
-        await checkRewardMilestones();
-
-        updatePuzzleBadge();
-
-        alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 보물: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
     } else {
         walkPuzzleAttempts++;
         updatePuzzleBadge();
-        alert(`순서가 아직 맞지 않습니다. (조립 박스 안의 조각을 터치해 위치를 조정해 보세요!)\n현재 남은 기회 보너스: ${walkPuzzleAttempts === 1 ? '💎 8점' : '💎 5점'}`);
+        alert(`순서가 아직 맞지 않습니다. (조립 박스 안의 조각을 터치해 위치를 조정해 보세요!)\n${isToday ? '현재 남은 기회 보너스: ' + (walkPuzzleAttempts === 1 ? '💎 8점' : '💎 5점') : '다시 차근차근 맞춰 보세요!'}`);
     }
 });
 
