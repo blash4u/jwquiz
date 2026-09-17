@@ -3,134 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>그리스도인 생활 성경 구절 퀴즈</title>
+    <title>그리스도인 성경 학습 센터</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
-        body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { text-align: center; padding: 30px 20px; width: 100%; max-width: 450px; }
+        body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+        .container { text-align: center; padding: 25px 20px; width: 100%; max-width: 480px; }
 
-        .btn-primary { background-color: #F97316; color: white; border: none; padding: 15px 40px; font-size: 1.1rem; font-weight: bold; border-radius: 30px; cursor: pointer; transition: 0.3s; }
+        .btn-primary { background-color: #F97316; color: white; border: none; padding: 14px 28px; font-size: 1.05rem; font-weight: bold; border-radius: 28px; cursor: pointer; transition: 0.25s; }
         .btn-primary:hover:not(:disabled) { background-color: #EA580C; }
         .btn-primary:disabled { background-color: #d1d5db; cursor: not-allowed; }
-        .btn-secondary { background-color: #ffffff; color: #F97316; border: 2px solid #F97316; padding: 12px 30px; font-size: 1rem; font-weight: bold; border-radius: 30px; cursor: pointer; transition: 0.3s; }
+        
+        .btn-secondary { background-color: #ffffff; color: #F97316; border: 2px solid #F97316; padding: 11px 24px; font-size: 0.95rem; font-weight: bold; border-radius: 25px; cursor: pointer; transition: 0.25s; }
         .btn-secondary:hover { background-color: #FFF7ED; }
 
-        .btn-mini { background-color: #ffffff; color: #EA580C; border: 1.5px solid #F97316; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; border-radius: 15px; cursor: pointer; transition: 0.2s; }
+        .btn-mini { background-color: #ffffff; color: #EA580C; border: 1.5px solid #F97316; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; border-radius: 15px; cursor: pointer; }
         .btn-mini:hover { background-color: #FFEDD5; }
 
         .logo-square {
-            width: 100px; height: 100px; background-color: #F97316; border-radius: 0px;
-            display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto;
+            width: 90px; height: 90px; background-color: #F97316;
+            display: flex; justify-content: center; align-items: center; margin: 0 auto 16px auto;
             box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
         }
-        .logo-square span { color: #FFF7ED; font-size: 2.8rem; font-weight: 900; letter-spacing: -1px; }
+        .logo-square span { color: #FFF7ED; font-size: 2.5rem; font-weight: 900; }
 
-        .sub-title { font-size: 1.1rem; font-weight: normal; color: #431407; margin-bottom: 5px; }
-        .main-title { font-size: 1.9rem; margin-bottom: 25px; color: #1F2937; font-weight: bold; }
+        .sub-title { font-size: 1.05rem; color: #431407; margin-bottom: 4px; }
+        .main-title { font-size: 1.8rem; margin-bottom: 22px; color: #1F2937; font-weight: bold; }
 
         /* 입력창 디자인 */
-        .input-group { margin-bottom: 16px; text-align: left; }
-        .input-label { display: block; font-size: 0.95rem; font-weight: bold; color: #431407; margin-bottom: 4px; }
-        .input-hint { display: block; font-size: 0.82rem; color: #EA580C; margin-bottom: 6px; font-weight: normal; }
-        .text-input { width: 100%; padding: 14px; border: 1.5px solid #FDBA74; border-radius: 10px; font-size: 1.05rem; outline: none; background: #fff; }
+        .input-group { margin-bottom: 14px; text-align: left; }
+        .input-label { display: block; font-size: 0.92rem; font-weight: bold; color: #431407; margin-bottom: 3px; }
+        .input-hint { display: block; font-size: 0.8rem; color: #EA580C; margin-bottom: 5px; }
+        .text-input { width: 100%; padding: 13px; border: 1.5px solid #FDBA74; border-radius: 10px; font-size: 1rem; outline: none; background: #fff; }
         .text-input:focus { border-color: #F97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); }
 
+        /* 로비 모드 카드 */
+        .mode-card {
+            background: #ffffff; border: 2px solid #FED7AA; border-radius: 14px; padding: 18px 16px; margin-bottom: 14px;
+            text-align: left; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .mode-card:hover { border-color: #F97316; transform: translateY(-2px); box-shadow: 0 5px 12px rgba(249, 115, 22, 0.15); }
+        .mode-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .mode-badge { font-size: 0.78rem; font-weight: bold; padding: 3px 8px; border-radius: 10px; background: #FFEDD5; color: #EA580C; }
+        .mode-title { font-size: 1.15rem; font-weight: bold; color: #1F2937; }
+        .mode-desc { font-size: 0.88rem; color: #6B7280; line-height: 1.45; }
+
         /* 점수판 */
-        .score-board { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 1.1rem; font-weight: bold; color: #431407; }
+        .score-board { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 1.05rem; font-weight: bold; color: #431407; }
         .user-info-area { display: flex; align-items: center; gap: 6px; }
-        .user-badge { font-size: 0.9rem; color: #EA580C; background: #FFEDD5; padding: 4px 10px; border-radius: 15px; }
-        #attempts-icon { font-size: 1.15rem; letter-spacing: 2px; }
+        .user-badge { font-size: 0.85rem; color: #EA580C; background: #FFEDD5; padding: 4px 9px; border-radius: 12px; }
+        #attempts-icon { font-size: 1.1rem; letter-spacing: 2px; }
         
-        #question-text { font-size: 1.25rem; margin-bottom: 20px; font-weight: bold; line-height: 1.5; word-break: keep-all; text-align: left; color: #111827; }
-        #category-title { font-size: 0.95rem; color: #F97316; text-align: left; margin-bottom: 8px; font-weight: bold; }
+        #question-text { font-size: 1.2rem; margin-bottom: 18px; font-weight: bold; line-height: 1.5; text-align: left; color: #111827; }
+        #category-title { font-size: 0.92rem; color: #F97316; text-align: left; margin-bottom: 6px; font-weight: bold; }
 
         .choice-btn { 
-            position: relative; display: block; width: 100%; text-align: left; padding: 14px; margin-bottom: 12px;
+            position: relative; display: block; width: 100%; text-align: left; padding: 13px; margin-bottom: 11px;
             background-color: #ffffff; color: #1F2937; border: 1px solid #d1d5db; border-radius: 8px;
-            font-size: 1.05rem; cursor: pointer; transition: background-color 0.2s;
+            font-size: 1rem; cursor: pointer; transition: background-color 0.2s;
         }
         .choice-btn:hover:not(:disabled) { background-color: #f3f4f6; border-color: #9ca3af; }
         .choice-btn.wrong { background-color: #f3f4f6; color: #9ca3af; text-decoration: line-through; border-color: #e5e7eb; }
-        .choice-number { font-weight: bold; color: #F97316; margin-right: 8px; }
+        .choice-number { font-weight: bold; color: #F97316; margin-right: 7px; }
 
         .tooltip-text {
             visibility: hidden; background-color: #431407; color: #ffffff; text-align: center;
-            border-radius: 6px; padding: 10px; position: absolute; z-index: 1;
-            bottom: 110%; left: 50%; transform: translateX(-50%); width: 90%;
-            font-size: 0.95rem; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+            border-radius: 6px; padding: 10px; position: absolute; z-index: 10;
+            bottom: 110%; left: 50%; transform: translateX(-50%); width: 92%;
+            font-size: 0.92rem; opacity: 0; transition: opacity 0.2s; pointer-events: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2); white-space: pre-line;
         }
         .choice-btn.show-hint:hover .tooltip-text { visibility: visible; opacity: 1; }
 
-        .feedback-box { display: none; margin-top: 20px; padding: 20px; background-color: #ffedd5; border-radius: 10px; border: 2px solid #F97316; text-align: left; }
-        #feedback-title { margin-bottom: 12px; font-size: 1.2rem; font-weight: bold; }
-        #feedback-text { line-height: 1.6; word-break: keep-all; white-space: pre-line; }
+        .feedback-box { display: none; margin-top: 18px; padding: 18px; background-color: #ffedd5; border-radius: 10px; border: 2px solid #F97316; text-align: left; }
+        #feedback-title { margin-bottom: 10px; font-size: 1.15rem; font-weight: bold; }
+        #feedback-text { line-height: 1.55; white-space: pre-line; font-size: 0.95rem; }
+
+        /* 『진리의 빛 안에서』 전용 UI */
+        .walk-card { background: #ffffff; border-radius: 12px; border: 1.5px solid #FED7AA; padding: 16px; margin-bottom: 14px; text-align: left; }
+        .walk-goal-box { background: #FFFBEB; border-left: 4px solid #F59E0B; padding: 12px; border-radius: 6px; margin: 12px 0; }
+        .walk-read-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #0284C7; color: #fff; border: none; padding: 13px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; margin-top: 8px; }
+        .walk-read-btn.completed { background: #059669; }
+        
+        /* 단어 조각 퍼즐 영역 */
+        .puzzle-drop-zone { min-height: 70px; background: #FFF7ED; border: 2px dashed #FDBA74; border-radius: 10px; padding: 10px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 12px; }
+        .puzzle-tile-zone { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+        .word-tile { background: #ffffff; border: 1.5px solid #F97316; color: #431407; padding: 7px 12px; font-size: 0.95rem; font-weight: bold; border-radius: 20px; cursor: pointer; user-select: none; transition: 0.2s; }
+        .word-tile:active { transform: scale(0.95); }
+        .word-tile.placed { background: #EA580C; color: #fff; border-color: #C2410C; }
 
         /* 모달 스타일 */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); z-index: 100;
-            justify-content: center; align-items: center; padding: 20px;
+            background-color: rgba(0, 0, 0, 0.65); z-index: 100;
+            justify-content: center; align-items: center; padding: 15px;
         }
         .modal-card {
-            background-color: #ffffff; border-radius: 16px; padding: 25px 20px; max-width: 400px; width: 100%;
+            background-color: #ffffff; border-radius: 16px; padding: 24px 18px; max-width: 410px; width: 100%;
             text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 3px solid #F97316;
-            animation: popIn 0.3s ease-out;
+            animation: popIn 0.25s ease-out; max-height: 90vh; overflow-y: auto;
         }
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .modal-icon { font-size: 3rem; margin-bottom: 8px; }
-        .modal-title { font-size: 1.35rem; color: #431407; margin-bottom: 6px; font-weight: bold; }
-        .modal-desc { font-size: 0.95rem; color: #4B5563; line-height: 1.5; margin-bottom: 15px; }
-        .coupon-box {
-            background-color: #FFF7ED; border: 2px dashed #F97316; border-radius: 8px;
-            padding: 12px; margin-bottom: 16px; font-weight: bold; color: #EA580C; font-size: 1.1rem;
-        }
+        @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-icon { font-size: 2.8rem; margin-bottom: 8px; }
+        .modal-title { font-size: 1.3rem; color: #431407; margin-bottom: 6px; font-weight: bold; }
+        .modal-desc { font-size: 0.92rem; color: #4B5563; line-height: 1.5; margin-bottom: 14px; }
+        .coupon-box { background-color: #FFF7ED; border: 2px dashed #F97316; border-radius: 8px; padding: 12px; margin-bottom: 15px; font-weight: bold; color: #EA580C; font-size: 1.05rem; }
 
-        .rank-tab-container { display: flex; gap: 8px; margin-bottom: 12px; }
-        .rank-tab-btn { flex: 1; padding: 8px 0; border: 1.5px solid #F97316; background: #fff; color: #F97316; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+        .rank-tab-container { display: flex; gap: 6px; margin-bottom: 12px; }
+        .rank-tab-btn { flex: 1; padding: 8px 0; border: 1.5px solid #F97316; background: #fff; color: #F97316; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.88rem; }
         .rank-tab-btn.active { background: #F97316; color: #fff; }
 
-        .ranking-list { list-style: none; margin: 10px 0 15px 0; text-align: left; max-height: 230px; overflow-y: auto; }
-        .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 8px; border-bottom: 1px solid #fed7aa; font-size: 0.95rem; }
+        .ranking-list { list-style: none; margin: 8px 0 14px 0; text-align: left; max-height: 220px; overflow-y: auto; }
+        .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 8px; border-bottom: 1px solid #fed7aa; font-size: 0.92rem; }
         .ranking-item.my-rank { font-weight: bold; color: #EA580C; background: #FFEDD5; border-radius: 6px; }
-        .ranking-rank { width: 35px; font-weight: bold; }
+        .ranking-rank { width: 32px; font-weight: bold; }
         .ranking-name { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .ranking-score { font-weight: bold; color: #F97316; }
     </style>
 </head>
 <body>
-    <!-- 1. 홈 화면 -->
-    <div id="home-screen" class="container">
+    <!-- 1. 계정 인증 화면 (로그인 화면) -->
+    <div id="auth-screen" class="container">
         <div class="logo-square">
             <span>JW</span>
         </div>
-        <h2 class="sub-title">그리스도인 생활을 위한</h2>
-        <h1 class="main-title">성경 구절 퀴즈</h1>
+        <h2 class="sub-title">그리스도인 성경 학습 센터</h2>
+        <h1 class="main-title">진리의 말씀 탐구</h1>
 
-        <!-- 이름 입력창 -->
         <div class="input-group">
-            <label class="input-label" for="username-input">학습자 이름</label>
-            <span class="input-hint">📌 반드시 본인 실명(이름)으로 적어주세요.</span>
+            <label class="input-label" for="username-input">학습자 실명</label>
+            <span class="input-hint">📌 본인 확인 및 순위 기록용 이름</span>
             <input type="text" id="username-input" class="text-input" placeholder="예: 홍길동" maxlength="10">
         </div>
 
-        <!-- 🌟 4자리 비밀번호(자물쇠) 입력창 -->
         <div class="input-group">
-            <label class="input-label" for="pin-input">🔒 비밀번호 (숫자 4자리)</label>
-            <span class="input-hint">기기 변경 시 본인 인증용으로 사용됩니다.</span>
+            <label class="input-label" for="pin-input">🔒 자물쇠 비밀번호 (숫자 4자리)</label>
+            <span class="input-hint">기기 변경 시 본인 인증에 사용됩니다.</span>
             <input type="password" id="pin-input" class="text-input" placeholder="숫자 4자리 입력" maxlength="4" inputmode="numeric">
         </div>
         
-        <button id="start-btn" class="btn-primary" style="width: 100%; margin-bottom: 12px; margin-top: 10px;">퀴즈 시작하기</button>
-        <button id="view-ranking-btn" class="btn-secondary" style="width: 100%; margin-bottom: 15px;">🏆 순위표 & 명예의 전당</button>
-        
-        <button id="upload-btn" class="btn-primary" style="width: 100%; background-color: #10B981; font-size: 0.95rem; padding: 10px; display: none;">⚙️ DB에 새로운 데이터 덮어쓰기 (관리자)</button>
+        <button id="login-btn" class="btn-primary" style="width: 100%; margin-top: 10px; margin-bottom: 12px;">학습 센터 입장하기</button>
+        <button id="view-ranking-btn" class="btn-secondary" style="width: 100%; margin-bottom: 14px;">🏆 순위표 & 명예의 전당</button>
+        <button id="upload-btn" class="btn-primary" style="width: 100%; background-color: #10B981; font-size: 0.92rem; padding: 10px; display: none;">⚙️ DB 데이터 덮어쓰기 (관리자)</button>
     </div>
 
-    <!-- 2. 퀴즈 화면 -->
+    <!-- 2. 모드 선택 허브 (Lobby Screen) -->
+    <div id="hub-screen" class="container" style="display: none;">
+        <div class="score-board">
+            <span class="user-badge" id="hub-player-display">학습자</span>
+            <span>💎 <span id="hub-score-text">0</span>점</span>
+            <button id="hub-logout-btn" class="btn-mini">이름 변경</button>
+        </div>
+
+        <h2 style="font-size: 1.45rem; color: #431407; margin-bottom: 18px; font-weight: bold;">학습 모드 선택</h2>
+
+        <!-- 모드 1: 기존 5지선다 퀴즈 -->
+        <div class="mode-card" id="mode-quiz-btn">
+            <div class="mode-card-header">
+                <span class="mode-title">🎯 성경 구절 퀴즈</span>
+                <span class="mode-badge">보물 사냥</span>
+            </div>
+            <p class="mode-desc">생활 주제별 148개 핵심 구절을 5지선다와 힌트를 통해 탐구하고 하늘보물을 수집합니다.</p>
+        </div>
+
+        <!-- 모드 2: 진리의 빛 안에서 (읽기 & 암기 워크북) -->
+        <div class="mode-card" id="mode-walk-btn">
+            <div class="mode-card-header">
+                <span class="mode-title">📖 진리의 빛 안에서</span>
+                <span class="mode-badge" style="background:#E0F2FE; color:#0369A1;">신규 모드</span>
+            </div>
+            <p class="mode-desc">JW Library 딥링크 통독, 중심 질문 묵상, 단어 조각 잇기 퍼즐로 성구를 완벽 암송합니다.</p>
+        </div>
+
+        <button id="hub-view-ranking-btn" class="btn-secondary" style="width: 100%; margin-top: 10px;">🏆 명예의 전당 열람</button>
+    </div>
+
+    <!-- 3. 모드 1: 5지선다 퀴즈 화면 -->
     <div id="quiz-screen" class="container" style="display: none;">
         <div class="score-board">
             <div class="user-info-area">
@@ -140,7 +187,10 @@
             </div>
             <span id="attempts-icon">❤️❤️❤️❤️❤️</span>
         </div>
-        <h2 id="category-title"></h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span id="category-title"></span>
+            <button id="back-to-hub-from-quiz" class="btn-mini" style="border: 1px solid #9CA3AF; color: #4B5563;">⌂ 메뉴</button>
+        </div>
         <p id="question-text"></p>
         
         <div id="choices-container"></div>
@@ -148,11 +198,70 @@
         <div id="feedback-container" class="feedback-box">
             <h3 id="feedback-title"></h3>
             <p id="feedback-text"></p>
-            <button id="next-btn" class="btn-primary" style="margin-top: 20px; width: 100%;">다음 문제로</button>
+            <button id="next-btn" class="btn-primary" style="margin-top: 16px; width: 100%;">다음 문제로</button>
         </div>
     </div>
 
-    <!-- 3. 보상 모달 -->
+    <!-- 4. 모드 2: 『진리의 빛 안에서』 성경 읽기 & 암기 화면 -->
+    <div id="walk-screen" class="container" style="display: none;">
+        <div class="score-board">
+            <div class="user-info-area">
+                <span class="user-badge" id="walk-player-display">학습자</span>
+                <span id="walk-streak-badge">☀️ 1일차 동행</span>
+            </div>
+            <button id="back-to-hub-from-walk" class="btn-mini" style="border: 1px solid #9CA3AF; color: #4B5563;">⌂ 메뉴</button>
+        </div>
+
+        <!-- 1) 성경 읽기 섹션 -->
+        <div class="walk-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="walk-reading-range" style="font-size: 1.2rem; color: #0369A1;">마태복음 5-7장</h3>
+                <span id="walk-status-tag" style="font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; background: #FEE2E2; color: #DC2626;">읽기 전</span>
+            </div>
+            
+            <div class="walk-goal-box">
+                <p style="font-size: 0.82rem; font-weight: bold; color: #92400E; margin-bottom: 3px;">🎯 오늘의 묵상 관점</p>
+                <p id="walk-goal-question" style="font-size: 0.95rem; color: #78350F; line-height: 1.45;"></p>
+            </div>
+
+            <!-- JW Library 딥링크 버튼 -->
+            <a id="jw-library-deeplink" href="#" class="walk-read-btn" target="_blank">
+                <span>📖 JW Library로 이동하여 읽기</span>
+            </a>
+            <p style="font-size: 0.78rem; color: #6B7280; text-align: center; margin-top: 6px;">
+                (앱이 없거나 PC인 경우 온라인 성경으로 연결됩니다)
+            </p>
+        </div>
+
+        <!-- 2) 단어 조각 잇기 퍼즐 암기 섹션 -->
+        <div class="walk-card">
+            <h3 style="font-size: 1.05rem; color: #431407; margin-bottom: 6px;">🧩 성구 조각 맞추기 암송</h3>
+            <p id="puzzle-verse-ref" style="font-size: 0.88rem; color: #EA580C; font-weight: bold; margin-bottom: 10px;"></p>
+            
+            <!-- 조립 창 -->
+            <div class="puzzle-drop-zone" id="puzzle-drop-zone">
+                <span style="font-size: 0.85rem; color: #9CA3AF;" id="drop-zone-placeholder">아래 단어 조각을 순서대로 터치하세요.</span>
+            </div>
+
+            <!-- 단어 조각 보관함 -->
+            <div class="puzzle-tile-zone" id="puzzle-tile-zone"></div>
+
+            <div style="display: flex; gap: 8px;">
+                <button id="puzzle-reset-btn" class="btn-secondary" style="flex: 1; padding: 10px;">다시 맞추기</button>
+                <button id="puzzle-check-btn" class="btn-primary" style="flex: 2; padding: 10px;">완성 확인 (+💎5)</button>
+            </div>
+        </div>
+
+        <!-- 3) 묵상 요약 카드 -->
+        <div class="walk-card" style="background: #F0FDF4; border-color: #86EFAC;">
+            <h4 style="font-size: 0.95rem; color: #166534; margin-bottom: 6px;">💡 오늘의 요점 및 시각 자료</h4>
+            <div id="walk-visual-symbol" style="font-size: 2rem; text-align: center; margin: 4px 0;">⛰️📖</div>
+            <p id="walk-visual-desc" style="font-size: 0.88rem; color: #14532D; text-align: center; margin-bottom: 8px;"></p>
+            <ul id="walk-meditation-list" style="padding-left: 20px; font-size: 0.88rem; color: #166534; line-height: 1.5;"></ul>
+        </div>
+    </div>
+
+    <!-- 5. 보상 모달 -->
     <div id="reward-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon" id="reward-modal-icon">🎁✨</div>
@@ -163,7 +272,7 @@
         </div>
     </div>
 
-    <!-- 4. 순위표 & 명예의 전당 모달 -->
+    <!-- 6. 순위표 & 명예의 전당 모달 -->
     <div id="ranking-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">🏆</div>
@@ -182,19 +291,19 @@
         </div>
     </div>
 
-    <!-- 5. 목숨 소진 게임 오버 모달 -->
+    <!-- 7. 게임 오버 모달 -->
     <div id="gameover-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">👏✨</div>
             <h2 class="modal-title">수고하셨습니다!</h2>
-            <p class="modal-desc" id="gameover-desc" style="font-size: 1.05rem; line-height: 1.6;">
-                준비된 목숨이 모두 소진되었습니다.<br>
-                성경 말씀을 열심히 탐구하셨습니다!
+            <p class="modal-desc" id="gameover-desc" style="font-size: 1rem; line-height: 1.5;">
+                준비된 목숨이 소진되었습니다.<br>
+                성경 말씀을 부지런히 탐구하셨습니다!
             </p>
             <div class="coupon-box" id="gameover-rank-box">
                 현재 등수 확인 중...
             </div>
-            <button id="gameover-home-btn" class="btn-primary" style="width: 100%;">처음 화면으로 돌아가기</button>
+            <button id="gameover-home-btn" class="btn-primary" style="width: 100%;">학습 센터로 돌아가기</button>
         </div>
     </div>
 
