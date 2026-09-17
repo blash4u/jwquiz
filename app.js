@@ -3,31 +3,25 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { 
     getFirestore, collection, getDocs, getDoc, doc, setDoc, query, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { firebaseConfig } from "./firebase-config.js"; 
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCbyuq4W5XUIfzE3ItpWYnADBTMz4d6PVo",
-  authDomain: "jw-biblequiz-app.firebaseapp.com",
-  projectId: "jw-biblequiz-app",
-  storageBucket: "jw-biblequiz-app.firebasestorage.app",
-  messagingSenderId: "656796223053",
-  appId: "1:656796223053:web:df0d5db40ea40461453e04"
-};
-
+// Firebase 초기화
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 1만 점 헌액 및 9,999점 선물 상수
 const HALL_OF_FAME_TARGET_SCORE = 10000;
 const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1;
 
-// 화면 컨테이너
+// 화면 컨테이너 참조
 const authScreen = document.getElementById('auth-screen');
 const hubScreen = document.getElementById('hub-screen');
 const quizScreen = document.getElementById('quiz-screen');
 const walkScreen = document.getElementById('walk-screen');
 
-// 인증 요소
+// 인증 관련 DOM 요소
 const loginBtn = document.getElementById('login-btn');
 const uploadBtn = document.getElementById('upload-btn');
 const viewRankingBtn = document.getElementById('view-ranking-btn');
@@ -37,21 +31,21 @@ const usernameInput = document.getElementById('username-input');
 const pinInput = document.getElementById('pin-input');
 const hubLogoutBtn = document.getElementById('hub-logout-btn');
 
-// 허브 요소
+// 허브 화면 DOM 요소
 const hubPlayerDisplay = document.getElementById('hub-player-display');
 const hubScoreText = document.getElementById('hub-score-text');
 const hubLivesBadge = document.getElementById('hub-lives-badge');
 const modeQuizBtn = document.getElementById('mode-quiz-btn');
 const modeWalkBtn = document.getElementById('mode-walk-btn');
 
-// 퀴즈 요소
+// 5지선다 퀴즈 DOM 요소
 const playerDisplay = document.getElementById('player-display');
 const choicesContainer = document.getElementById('choices-container');
 const feedbackContainer = document.getElementById('feedback-container');
 const nextBtn = document.getElementById('next-btn');
 const backToHubFromQuiz = document.getElementById('back-to-hub-from-quiz');
 
-// 『진리의 빛 안에서』 요소
+// 『진리의 빛 안에서』 DOM 요소
 const walkPlayerDisplay = document.getElementById('walk-player-display');
 const walkReadingRange = document.getElementById('walk-reading-range');
 const walkStatusTag = document.getElementById('walk-status-tag');
@@ -65,7 +59,7 @@ const puzzleCheckBtn = document.getElementById('puzzle-check-btn');
 const walkMeditationList = document.getElementById('walk-meditation-list');
 const backToHubFromWalk = document.getElementById('back-to-hub-from-walk');
 
-// 모달 요소
+// 모달 관련 DOM 요소
 const rewardModal = document.getElementById('reward-modal');
 const rewardModalIcon = document.getElementById('reward-modal-icon');
 const rewardModalTitle = document.getElementById('reward-modal-title');
@@ -84,23 +78,23 @@ const gameoverModal = document.getElementById('gameover-modal');
 const gameoverRankBox = document.getElementById('gameover-rank-box');
 const gameoverHomeBtn = document.getElementById('gameover-home-btn');
 
-// 전역 게임 상태
+// 전역 게임 상태 변수
 let currentUser = "";
 let quizDataList = [];
 let currentQuizIndex = 0;
 let currentScore = 0;
-let totalLives = 5;
-let questionAttempts = 3;
+let totalLives = 5;          // 남은 라이프 (Firestore 연동)
+let questionAttempts = 3;    // 문항 내 시도 횟수 (3, 2, 1)
 let currentCorrectAnswer = "";
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
 
-// 퍼즐 상태
+// 일용할 성구 퍼즐 상태 변수
 let currentWalkPlan = walkInData[0];
 let selectedTiles = [];
 let shuffledTiles = [];
 
-// 자동 로그인 복원
+// 로컬 스토리지에서 자동 로그인 입력값 복원
 const savedName = localStorage.getItem('bibleQuizUser');
 const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName) usernameInput.value = savedName;
@@ -112,6 +106,7 @@ if (urlParams.get('admin') === 'true' && uploadBtn) {
     uploadBtn.style.display = "block";
 }
 
+// DB 업데이트 버튼 이벤트 (관리자용)
 if (uploadBtn) {
     uploadBtn.addEventListener('click', async () => {
         uploadBtn.innerText = "업로드 중...";
@@ -154,6 +149,7 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
+// Firestore에 점수와 라이프 영구 저장
 async function saveUserData(score, lives) {
     if (!currentUser) return;
     try {
@@ -168,6 +164,7 @@ async function saveUserData(score, lives) {
     }
 }
 
+// 명예의 전당 영구 기록
 async function saveToHallOfFame() {
     if (!currentUser) return;
     try {
@@ -186,6 +183,7 @@ async function saveToHallOfFame() {
     }
 }
 
+// 현재 사용자 실시간 순위 조회
 async function fetchUserRank() {
     try {
         const q = query(collection(db, "users"), orderBy("score", "desc"));
@@ -292,7 +290,7 @@ hubLogoutBtn.addEventListener('click', () => {
     authScreen.style.display = 'block';
 });
 
-// 모드 1 (퀴즈) 실행
+// 모드 1 (퀴즈) 시작
 modeQuizBtn.addEventListener('click', async () => {
     if (quizDataList.length === 0) {
         const querySnapshot = await getDocs(collection(db, "quizzes"));
@@ -304,7 +302,7 @@ modeQuizBtn.addEventListener('click', async () => {
     loadQuestion();
 });
 
-// 모드 2 (진리의 빛 안에서) 실행
+// 모드 2 (진리의 빛 안에서) 시작
 modeWalkBtn.addEventListener('click', () => {
     hubScreen.style.display = 'none';
     walkScreen.style.display = 'block';
@@ -327,7 +325,7 @@ backToHubFromWalk.addEventListener('click', () => {
 });
 
 // -------------------------------------------------------------
-// [모드 1: 5지선다 퀴즈 로직 - 넘김 버그 해결]
+// [모드 1: 5지선다 퀴즈 로직]
 // -------------------------------------------------------------
 function loadQuestion() {
     if (quizDataList.length === 0) {
@@ -349,7 +347,6 @@ function loadQuestion() {
     document.getElementById('category-title').innerText = `주제: ${quiz.category}`;
     document.getElementById('question-text').innerText = quiz.question;
 
-    // 화면 영역 초기화
     feedbackContainer.style.display = 'none';
     choicesContainer.style.display = 'block';
     choicesContainer.innerHTML = '';
@@ -397,7 +394,7 @@ async function handleChoice(choice, btn, quiz) {
         btn.classList.add("wrong");
         btn.disabled = true;
 
-        // 3번째 시도 시 모든 선택지(오답 포함) 힌트 활성화
+        // 3번째 시도 시 전체 툴팁 활성화
         if (questionAttempts === 1) {
             const allBtns = choicesContainer.querySelectorAll('.choice-btn');
             allBtns.forEach(b => b.classList.add('show-hint'));
@@ -426,13 +423,12 @@ function showFeedback(title, text, isCorrect) {
     document.getElementById('feedback-text').innerText = text;
 }
 
-// 🌟 [다음 문제로] 버튼 클릭 시 확실하게 다음 문제 로드
 nextBtn.addEventListener('click', () => {
     currentQuizIndex++;
     loadQuestion();
 });
 
-// 게임 오버 처리
+// 라이프 0개 게임 오버 처리
 async function triggerGameOver() {
     choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
     
