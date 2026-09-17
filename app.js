@@ -57,6 +57,7 @@ const puzzleCheckBtn = document.getElementById('puzzle-check-btn');
 const puzzleScoreBadge = document.getElementById('puzzle-score-badge');
 const walkMeditationList = document.getElementById('walk-meditation-list');
 const backToHubFromWalk = document.getElementById('back-to-hub-from-walk');
+const walkStreakBadge = document.getElementById('walk-streak-badge');
 
 // 모달 요소
 const rewardModal = document.getElementById('reward-modal');
@@ -77,7 +78,7 @@ const gameoverModal = document.getElementById('gameover-modal');
 const gameoverRankBox = document.getElementById('gameover-rank-box');
 const gameoverHomeBtn = document.getElementById('gameover-home-btn');
 
-// 전역 게임 상태
+// 게임 전역 변수
 let currentUser = "";
 let quizDataList = [];
 let currentQuizIndex = 0;
@@ -88,10 +89,10 @@ let currentCorrectAnswer = "";
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
 
-// 퍼즐 상태 (단어 조각 및 시도 횟수)
-let currentWalkPlan = walkInData[0];
-let selectedTiles = []; // 조립창에 들어간 타일 객체 배열 { text, element }
-let walkPuzzleAttempts = 0; // 퍼즐 제출 시도 횟수
+// 퍼즐 상태 변수
+let currentWalkPlan = null;
+let selectedTiles = [];
+let walkPuzzleAttempts = 0;
 
 // 자동 로그인 복원
 const savedName = localStorage.getItem('bibleQuizUser');
@@ -440,12 +441,27 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 일용할 성구 & 인터랙티브 퍼즐]
+// [모드 2: 오늘 날짜 일용할 성구 자동 매칭 로직]
 // -------------------------------------------------------------
+function getTodayWalkPlan() {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentDay = today.getDate();
+
+    // 등록된 데이터 중 오늘 날짜와 일치하는 항목 검색
+    const foundPlan = walkInData.find(item => item.month === currentMonth && item.day === currentDay);
+
+    // 일치하는 항목이 있으면 반환하고, 없으면 첫 번째 항목을 fallback으로 사용
+    return foundPlan ? foundPlan : walkInData[0];
+}
+
 function setupWalkMode() {
+    // 🌟 오늘 날짜 성구 플랜을 동적으로 가져옴
+    currentWalkPlan = getTodayWalkPlan();
+
+    walkStreakBadge.innerText = `☀️ ${currentWalkPlan.date_display || "오늘의 성구"}`;
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
-    wolDeeplink.href = currentWalkPlan.wol_url;
 
     wolDeeplink.onclick = () => {
         walkStatusTag.innerText = "읽기 완료 ✓";
@@ -462,7 +478,7 @@ function setupWalkMode() {
         walkMeditationList.appendChild(li);
     });
 
-    walkPuzzleAttempts = 0; // 시도 횟수 초기화
+    walkPuzzleAttempts = 0;
     updatePuzzleBadge();
     setupWordPuzzle();
 }
@@ -501,45 +517,36 @@ function setupWordPuzzle() {
     });
 }
 
-// 보관함에서 조립창으로 투입
 function handleTileFromBank(tileElement, tileText) {
     const placeholder = document.getElementById('drop-zone-placeholder');
     if (placeholder) placeholder.remove();
 
     tileElement.classList.add('placed');
     tileElement.innerHTML = `${tileText} <span class="tile-arrow">⇄</span>`;
-    
-    // 조립창 내부 클릭 시: 위치 이동 핸들러로 전환
     tileElement.onclick = () => handleTileInDropZone(tileElement, tileText);
     
     puzzleDropZone.appendChild(tileElement);
     selectedTiles.push({ text: tileText, element: tileElement });
 }
 
-// 🌟 조립창 내부 조각 터치 시: 박스 안에서 위치 이동(다음 위치로 이동하거나 길게 눌러 회수)
 function handleTileInDropZone(tileElement, tileText) {
     const currentIndex = selectedTiles.findIndex(t => t.element === tileElement);
     if (currentIndex === -1) return;
 
     if (selectedTiles.length > 1) {
-        // 다음 위치의 조각과 위치 맞바꾸기 (마지막 조각이면 맨 앞으로 순환 이동)
         const nextIndex = (currentIndex + 1) % selectedTiles.length;
         
-        // 배열 내 swap
         const temp = selectedTiles[currentIndex];
         selectedTiles[currentIndex] = selectedTiles[nextIndex];
         selectedTiles[nextIndex] = temp;
 
-        // DOM 재배치
         puzzleDropZone.innerHTML = '';
         selectedTiles.forEach(t => puzzleDropZone.appendChild(t.element));
     } else {
-        // 조각이 1개뿐일 때 터치하면 보관함으로 회수
         returnTileToBank(tileElement, tileText);
     }
 }
 
-// 보관함으로 조각 반환
 function returnTileToBank(tileElement, tileText) {
     tileElement.classList.remove('placed');
     tileElement.innerText = tileText;
@@ -558,7 +565,6 @@ puzzleResetBtn.addEventListener('click', () => {
     setupWordPuzzle();
 });
 
-// 🌟 차등 배점 적용 퍼즐 검증 (1회 10점, 2회 8점, 3회 이상 5점)
 puzzleCheckBtn.addEventListener('click', async () => {
     const correctTiles = currentWalkPlan.memory_verse.puzzle_tiles;
     const isFull = (selectedTiles.length === correctTiles.length);
