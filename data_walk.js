@@ -10,8 +10,7 @@ export const walkInData = [
       start_chapter: 5,
       end_chapter: 7,
       reference_display: "마태복음 5장 - 7장",
-      jw_library_url: "jwlibrary://bible/nwt/MAT/5-7",
-      web_fallback_url: "https://www.jw.org/ko/라이브러리/성경/nwt-스터디성경/마태복음/5/"
+      web_url: "https://www.jw.org/ko/라이브러리/성경/nwt-스터디성경/마태복음/5/"
     },
     reading_goal: {
       main_theme: "예수의 산상수훈과 하느님 왕국의 기준",
