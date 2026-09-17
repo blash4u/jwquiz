@@ -56,14 +56,12 @@ const walkPlayerDisplay = document.getElementById('walk-player-display');
 const walkReadingRange = document.getElementById('walk-reading-range');
 const walkStatusTag = document.getElementById('walk-status-tag');
 const walkGoalQuestion = document.getElementById('walk-goal-question');
-const jwLibraryDeeplink = document.getElementById('jw-library-deeplink');
+const wolDeeplink = document.getElementById('wol-deeplink');
 const puzzleVerseRef = document.getElementById('puzzle-verse-ref');
 const puzzleDropZone = document.getElementById('puzzle-drop-zone');
 const puzzleTileZone = document.getElementById('puzzle-tile-zone');
 const puzzleResetBtn = document.getElementById('puzzle-reset-btn');
 const puzzleCheckBtn = document.getElementById('puzzle-check-btn');
-const walkVisualSymbol = document.getElementById('walk-visual-symbol');
-const walkVisualDesc = document.getElementById('walk-visual-desc');
 const walkMeditationList = document.getElementById('walk-meditation-list');
 const backToHubFromWalk = document.getElementById('back-to-hub-from-walk');
 
@@ -91,8 +89,8 @@ let currentUser = "";
 let quizDataList = [];
 let currentQuizIndex = 0;
 let currentScore = 0;
-let totalLives = 5;          // 남은 라이프 (DB 연동)
-let questionAttempts = 3;    // 문항 내 시도 (3, 2, 1)
+let totalLives = 5;
+let questionAttempts = 3;
 let currentCorrectAnswer = "";
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
@@ -102,13 +100,13 @@ let currentWalkPlan = walkInData[0];
 let selectedTiles = [];
 let shuffledTiles = [];
 
-// 자동 로그인 입력창 복원
+// 자동 로그인 복원
 const savedName = localStorage.getItem('bibleQuizUser');
 const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName) usernameInput.value = savedName;
 if (savedPin) pinInput.value = savedPin;
 
-// 관리자 파라미터 체크
+// 관리자 파라미터 체크 (?admin=true)
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('admin') === 'true' && uploadBtn) {
     uploadBtn.style.display = "block";
@@ -156,7 +154,6 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-// 🌟 사용자 점수 및 남은 라이프를 동시에 Firestore에 영구 저장
 async function saveUserData(score, lives) {
     if (!currentUser) return;
     try {
@@ -241,17 +238,14 @@ loginBtn.addEventListener('click', async () => {
                 await setDoc(userDocRef, { pin: inputPin }, { merge: true });
             }
             
-            // 🌟 기존 유저의 점수 및 남은 라이프 복원
             currentScore = userData.score || 0;
             totalLives = (userData.lives !== undefined) ? userData.lives : 5;
             
-            // 만약 이전 게임에서 0개로 끝난 상태였다면 5개로 안전 초기화
             if (totalLives <= 0) {
                 totalLives = 5;
                 await saveUserData(currentScore, totalLives);
             }
         } else {
-            // 신규 사용자 등록
             currentScore = 0;
             totalLives = 5;
             await setDoc(userDocRef, {
@@ -320,6 +314,7 @@ modeWalkBtn.addEventListener('click', () => {
 backToHubFromQuiz.addEventListener('click', () => {
     quizScreen.style.display = 'none';
     feedbackContainer.style.display = 'none';
+    choicesContainer.style.display = 'block';
     hubScreen.style.display = 'block';
     updateScoreBoard();
     updateLivesIcon();
@@ -332,11 +327,16 @@ backToHubFromWalk.addEventListener('click', () => {
 });
 
 // -------------------------------------------------------------
-// [모드 1: 5지선다 퀴즈 로직]
+// [모드 1: 5지선다 퀴즈 로직 - 넘김 버그 해결]
 // -------------------------------------------------------------
 function loadQuestion() {
+    if (quizDataList.length === 0) {
+        alert("문제를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+        return;
+    }
+
     if (currentQuizIndex >= quizDataList.length) {
-        alert("모든 문제를 순환했습니다. 문제를 다시 섞습니다.");
+        alert("모든 문제를 순환했습니다! 문제를 다시 섞습니다.");
         currentQuizIndex = 0;
         quizDataList = shuffleArray(quizDataList);
     }
@@ -349,6 +349,7 @@ function loadQuestion() {
     document.getElementById('category-title').innerText = `주제: ${quiz.category}`;
     document.getElementById('question-text').innerText = quiz.question;
 
+    // 화면 영역 초기화
     feedbackContainer.style.display = 'none';
     choicesContainer.style.display = 'block';
     choicesContainer.innerHTML = '';
@@ -396,19 +397,17 @@ async function handleChoice(choice, btn, quiz) {
         btn.classList.add("wrong");
         btn.disabled = true;
 
-        // 🌟 3번째 기회(questionAttempts === 1)가 되면 오답으로 틀린 버튼을 포함해 전체 툴팁 활성화
+        // 3번째 시도 시 모든 선택지(오답 포함) 힌트 활성화
         if (questionAttempts === 1) {
             const allBtns = choicesContainer.querySelectorAll('.choice-btn');
             allBtns.forEach(b => b.classList.add('show-hint'));
         }
 
-        // 문제를 3번 모두 틀렸을 때만 라이프 1개 차감
         if (questionAttempts <= 0) {
             totalLives--;
             updateLivesIcon();
             await saveUserData(currentScore, totalLives);
 
-            // 🌟 라이프를 모두 잃었을 때 (0개) -> 점수 0점 리셋 및 게임 오버
             if (totalLives <= 0) {
                 await triggerGameOver();
                 return;
@@ -427,28 +426,27 @@ function showFeedback(title, text, isCorrect) {
     document.getElementById('feedback-text').innerText = text;
 }
 
+// 🌟 [다음 문제로] 버튼 클릭 시 확실하게 다음 문제 로드
 nextBtn.addEventListener('click', () => {
     currentQuizIndex++;
     loadQuestion();
 });
 
-// 🌟 게임 오버 처리: 영적 보물 0점 초기화 및 라이프 5개 재충전
+// 게임 오버 처리
 async function triggerGameOver() {
     choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
     
-    // 영적 보물 0개로 리셋 & 다음 도전을 위해 라이프 5개 충전
     const previousScore = currentScore;
     currentScore = 0;
     totalLives = 5;
     
-    // 클라우드 DB 즉시 동기화
     await saveUserData(currentScore, totalLives);
     updateScoreBoard();
     updateLivesIcon();
 
     gameoverRankBox.innerHTML = `
         이전 기록: <strong>💎 ${previousScore}개</strong><br>
-        <span style="color:#EF4444; font-size:0.9rem;">영적 보물이 0개로 리셋되었습니다.</span><br>
+        <span style="color:#EF4444; font-size:0.9rem;">영적 보물이 0개로 초기화되었습니다.</span><br>
         새로운 라이프(❤️❤️❤️❤️❤️)가 충전되었습니다.
     `;
     gameoverModal.style.display = 'flex';
@@ -458,23 +456,16 @@ async function triggerGameOver() {
 // [모드 2: 『진리의 빛 안에서』 로직]
 // -------------------------------------------------------------
 function setupWalkMode() {
-    walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
-    
-    // 🌟 JW.ORG 웹사이트 링크로 연결
-    jwLibraryDeeplink.href = currentWalkPlan.reading_range.web_url;
+    wolDeeplink.href = currentWalkPlan.wol_url;
 
-    jwLibraryDeeplink.onclick = () => {
+    wolDeeplink.onclick = () => {
         walkStatusTag.innerText = "읽기 완료 ✓";
         walkStatusTag.style.background = "#DCFCE7";
         walkStatusTag.style.color = "#15803D";
-        jwLibraryDeeplink.classList.add('completed');
-        jwLibraryDeeplink.innerHTML = "<span>✓ JW.ORG에서 읽음 (다시 열기)</span>";
+        wolDeeplink.classList.add('completed');
+        wolDeeplink.innerHTML = "<span>✓ WOL 성구 읽음 (다시 열기)</span>";
     };
-
-    const illu = currentWalkPlan.illustrations[0];
-    walkVisualSymbol.innerText = illu.image_symbol;
-    walkVisualDesc.innerText = `[${illu.title}] - ${illu.description}`;
 
     walkMeditationList.innerHTML = '';
     currentWalkPlan.meditation_summary.forEach(point => {
@@ -538,7 +529,7 @@ puzzleCheckBtn.addEventListener('click', async () => {
         updateScoreBoard();
         await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
-        alert(`🎉 완벽합니다! 성구를 바르게 암송하셨습니다.\n하늘보물 💎 5점을 획득하셨습니다.\n\n"${currentWalkPlan.memory_verse.full_text}"`);
+        alert(`🎉 완벽합니다! 오늘의 일용할 성구를 바르게 암송하셨습니다.\n하늘보물 💎 5점을 획득하셨습니다.\n\n"${currentWalkPlan.memory_verse.full_text}"`);
     } else {
         alert("아직 단어 조각의 순서가 맞지 않습니다. 다시 배열해 보세요!");
     }
@@ -660,5 +651,6 @@ gameoverHomeBtn.addEventListener('click', () => {
     gameoverModal.style.display = 'none';
     quizScreen.style.display = 'none';
     feedbackContainer.style.display = 'none';
+    choicesContainer.style.display = 'block';
     hubScreen.style.display = 'block';
 });
