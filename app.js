@@ -104,7 +104,7 @@ let selectedTiles = [];
 let walkPuzzleAttempts = 0;
 let isPuzzleSolved = false;
 
-// 🌟 영구 보존되는 일자 기록 (YYYY-MM-DD)
+// 영구 보존되는 일자 기록 (YYYY-MM-DD)
 let userLastSolvedDailyDate = ""; 
 let userLastReadDailyDate = "";   
 let viewingPlanDateStr = "";      
@@ -112,12 +112,6 @@ let viewingPlanDateStr = "";
 // 달력 뷰어 현재 연/월
 let calViewYear = 2026;
 let calViewMonth = 9;
-
-// 자동 로그인 복원
-const savedName = localStorage.getItem('bibleQuizUser');
-const savedPin = localStorage.getItem('bibleQuizPin');
-if (savedName) usernameInput.value = savedName;
-if (savedPin) pinInput.value = savedPin;
 
 // 오늘 날짜 문자열 반환 헬퍼 (YYYY-MM-DD)
 function getTodayDateString() {
@@ -127,6 +121,12 @@ function getTodayDateString() {
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
+
+// 자동 로그인 복원 시도
+const savedName = localStorage.getItem('bibleQuizUser');
+const savedPin = localStorage.getItem('bibleQuizPin');
+if (savedName) usernameInput.value = savedName;
+if (savedPin) pinInput.value = savedPin;
 
 // 관리자 파라미터 체크
 const urlParams = new URLSearchParams(window.location.search);
@@ -176,27 +176,35 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-// 🌟 사용자 데이터(점수, 목숨, 읽기 완료 일자, 암송 완료 일자)를 영구 저장
+// 🌟 즉시 로컬 동기화 + Firestore 영구 저장 함수
 async function saveUserData(score, lives, solvedDate = null, readDate = null) {
-    if (!currentUser) return;
+    const activeUser = currentUser || localStorage.getItem('bibleQuizUser');
+    if (!activeUser) return;
+
+    // 1. 로컬 스토리지에 동기식으로 먼저 안전하게 기록 (새로고침/뒤로가기 유실 방지)
+    localStorage.setItem(`score_${activeUser}`, score);
+    localStorage.setItem(`lives_${activeUser}`, lives);
+    if (solvedDate !== null) {
+        userLastSolvedDailyDate = solvedDate;
+        localStorage.setItem(`lastSolvedDailyDate_${activeUser}`, solvedDate);
+    }
+    if (readDate !== null) {
+        userLastReadDailyDate = readDate;
+        localStorage.setItem(`lastReadDailyDate_${activeUser}`, readDate);
+    }
+
+    // 2. 클라우드 Firestore 동기화
     try {
         const updatePayload = {
-            username: currentUser,
+            username: activeUser,
             score: score,
             lives: lives,
             updatedAt: new Date()
         };
-        if (solvedDate !== null) {
-            updatePayload.lastSolvedDailyDate = solvedDate;
-            userLastSolvedDailyDate = solvedDate;
-            localStorage.setItem(`lastSolvedDailyDate_${currentUser}`, solvedDate);
-        }
-        if (readDate !== null) {
-            updatePayload.lastReadDailyDate = readDate;
-            userLastReadDailyDate = readDate;
-            localStorage.setItem(`lastReadDailyDate_${currentUser}`, readDate);
-        }
-        await setDoc(doc(db, "users", currentUser), updatePayload, { merge: true });
+        if (solvedDate !== null) updatePayload.lastSolvedDailyDate = solvedDate;
+        if (readDate !== null) updatePayload.lastReadDailyDate = readDate;
+
+        await setDoc(doc(db, "users", activeUser), updatePayload, { merge: true });
     } catch (e) {
         console.error("데이터 저장 실패:", e);
     }
@@ -272,12 +280,18 @@ loginBtn.addEventListener('click', async () => {
                 await setDoc(userDocRef, { pin: inputPin }, { merge: true });
             }
             
-            // 기존 점수 및 상태 복원
+            // 기존 점수 및 상태 복원 (로컬 스토리지 우선 확인 후 DB 매칭)
             currentScore = userData.score || 0;
             totalLives = (userData.lives !== undefined) ? userData.lives : 5;
             userLastSolvedDailyDate = userData.lastSolvedDailyDate || localStorage.getItem(`lastSolvedDailyDate_${inputName}`) || "";
             userLastReadDailyDate = userData.lastReadDailyDate || localStorage.getItem(`lastReadDailyDate_${inputName}`) || "";
             
+            // 로컬 스토리지 캐시 동기화
+            localStorage.setItem(`lastSolvedDailyDate_${inputName}`, userLastSolvedDailyDate);
+            localStorage.setItem(`lastReadDailyDate_${inputName}`, userLastReadDailyDate);
+            localStorage.setItem(`score_${inputName}`, currentScore);
+            localStorage.setItem(`lives_${inputName}`, totalLives);
+
             if (totalLives <= 0) {
                 totalLives = 5;
                 await saveUserData(currentScore, totalLives);
@@ -505,6 +519,7 @@ function getTodayWalkPlan() {
 
 function setupWalkMode(customDateStr = null) {
     const todayStr = getTodayDateString();
+    const activeUser = currentUser || localStorage.getItem('bibleQuizUser') || "";
 
     if (customDateStr) {
         viewingPlanDateStr = customDateStr;
@@ -522,7 +537,13 @@ function setupWalkMode(customDateStr = null) {
 
     const isToday = (viewingPlanDateStr === todayStr);
 
-    // 🌟 1. 읽기 완료 영구 복원 (오늘 날짜이고 이미 읽은 기록이 있으면 유지)
+    // 🌟 로컬 스토리지에서 즉각 최신 상태 다시 읽기 (뒤로가기/새로고침 대비)
+    if (activeUser) {
+        userLastReadDailyDate = localStorage.getItem(`lastReadDailyDate_${activeUser}`) || userLastReadDailyDate;
+        userLastSolvedDailyDate = localStorage.getItem(`lastSolvedDailyDate_${activeUser}`) || userLastSolvedDailyDate;
+    }
+
+    // 1. 읽기 완료 영구 복원
     const isReadToday = isToday && (userLastReadDailyDate === todayStr);
     if (isReadToday) {
         walkStatusTag.innerText = "읽기 완료 ✓";
@@ -538,15 +559,15 @@ function setupWalkMode(customDateStr = null) {
         wolDeeplink.innerHTML = "<span>📖 날마다 성경을 검토함 읽기</span>";
     }
 
-    // 🌟 2. 암송 완료 영구 복원 (오늘 날짜이고 이미 암송 완료한 기록이 있으면 유지)
+    // 2. 암송 완료 영구 복원
     isPuzzleSolved = isToday && (userLastSolvedDailyDate === todayStr);
 
     walkStreakBadge.innerText = `☀️ ${currentWalkPlan.date_display || "성구 묵상"}`;
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
 
-    // 읽기 클릭 시 즉시 영구 저장
-    wolDeeplink.onclick = async () => {
+    // 🌟 읽기 클릭 이벤트: 클릭 즉시 로컬에 선반영한 뒤 새 창 오픈
+    wolDeeplink.onclick = () => {
         walkStatusTag.innerText = "읽기 완료 ✓";
         walkStatusTag.style.background = "#DCFCE7";
         walkStatusTag.style.color = "#15803D";
@@ -554,7 +575,7 @@ function setupWalkMode(customDateStr = null) {
         wolDeeplink.innerHTML = "<span>✓ 오늘 읽기 완료 (다시 열기)</span>";
 
         if (isToday) {
-            await saveUserData(currentScore, totalLives, null, todayStr);
+            saveUserData(currentScore, totalLives, null, todayStr);
         }
     };
 
@@ -583,6 +604,14 @@ function setupWalkMode(customDateStr = null) {
 
     setupWordPuzzle();
 }
+
+// 🌟 브라우저 '뒤로 가기'로 돌아왔을 때 상태 강제 재동기화 리스너
+window.addEventListener('pageshow', () => {
+    const activeUser = currentUser || localStorage.getItem('bibleQuizUser');
+    if (activeUser && walkScreen.style.display === 'block') {
+        setupWalkMode(viewingPlanDateStr || null);
+    }
+});
 
 // 월 달력 렌더링 함수
 function renderWalkCalendar(year, month) {
@@ -761,7 +790,6 @@ puzzleResetBtn.addEventListener('click', () => {
     }
 });
 
-// 🌟 완성 확인 클릭 시 점수 및 상태 즉시 영구 저장
 puzzleCheckBtn.addEventListener('click', async () => {
     const todayStr = getTodayDateString();
     const isToday = (viewingPlanDateStr === todayStr);
@@ -793,7 +821,7 @@ puzzleCheckBtn.addEventListener('click', async () => {
             currentScore += earnedPoints;
             updateScoreBoard();
 
-            // 🌟 점수와 암송 완료 날짜를 즉시 Firestore & 로컬에 영구 저장
+            // 점수 및 암송 완료 날짜 즉각 영구 저장
             await saveUserData(currentScore, totalLives, todayStr, null);
             await checkRewardMilestones();
             updatePuzzleBadge();
