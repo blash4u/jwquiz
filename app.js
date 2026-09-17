@@ -176,12 +176,12 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-// 🌟 즉시 로컬 동기화 + Firestore 영구 저장 함수
+// 즉시 로컬 동기화 + Firestore 영구 저장 함수
 async function saveUserData(score, lives, solvedDate = null, readDate = null) {
     const activeUser = currentUser || localStorage.getItem('bibleQuizUser');
     if (!activeUser) return;
 
-    // 1. 로컬 스토리지에 동기식으로 먼저 안전하게 기록 (새로고침/뒤로가기 유실 방지)
+    // 1. 로컬 스토리지에 동기식으로 먼저 안전하게 기록
     localStorage.setItem(`score_${activeUser}`, score);
     localStorage.setItem(`lives_${activeUser}`, lives);
     if (solvedDate !== null) {
@@ -280,13 +280,11 @@ loginBtn.addEventListener('click', async () => {
                 await setDoc(userDocRef, { pin: inputPin }, { merge: true });
             }
             
-            // 기존 점수 및 상태 복원 (로컬 스토리지 우선 확인 후 DB 매칭)
             currentScore = userData.score || 0;
             totalLives = (userData.lives !== undefined) ? userData.lives : 5;
             userLastSolvedDailyDate = userData.lastSolvedDailyDate || localStorage.getItem(`lastSolvedDailyDate_${inputName}`) || "";
             userLastReadDailyDate = userData.lastReadDailyDate || localStorage.getItem(`lastReadDailyDate_${inputName}`) || "";
             
-            // 로컬 스토리지 캐시 동기화
             localStorage.setItem(`lastSolvedDailyDate_${inputName}`, userLastSolvedDailyDate);
             localStorage.setItem(`lastReadDailyDate_${inputName}`, userLastReadDailyDate);
             localStorage.setItem(`score_${inputName}`, currentScore);
@@ -537,7 +535,6 @@ function setupWalkMode(customDateStr = null) {
 
     const isToday = (viewingPlanDateStr === todayStr);
 
-    // 🌟 로컬 스토리지에서 즉각 최신 상태 다시 읽기 (뒤로가기/새로고침 대비)
     if (activeUser) {
         userLastReadDailyDate = localStorage.getItem(`lastReadDailyDate_${activeUser}`) || userLastReadDailyDate;
         userLastSolvedDailyDate = localStorage.getItem(`lastSolvedDailyDate_${activeUser}`) || userLastSolvedDailyDate;
@@ -566,7 +563,6 @@ function setupWalkMode(customDateStr = null) {
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
 
-    // 🌟 읽기 클릭 이벤트: 클릭 즉시 로컬에 선반영한 뒤 새 창 오픈
     wolDeeplink.onclick = () => {
         walkStatusTag.innerText = "읽기 완료 ✓";
         walkStatusTag.style.background = "#DCFCE7";
@@ -605,7 +601,6 @@ function setupWalkMode(customDateStr = null) {
     setupWordPuzzle();
 }
 
-// 🌟 브라우저 '뒤로 가기'로 돌아왔을 때 상태 강제 재동기화 리스너
 window.addEventListener('pageshow', () => {
     const activeUser = currentUser || localStorage.getItem('bibleQuizUser');
     if (activeUser && walkScreen.style.display === 'block') {
@@ -782,12 +777,10 @@ function returnTileToBank(tileElement, tileText) {
     }
 }
 
+// 🌟 [버그 수정] 다시 맞추기를 누를 때 실패 카운트(walkPuzzleAttempts)를 리셋하지 않고 타일만 재배열
 puzzleResetBtn.addEventListener('click', () => {
     setupWordPuzzle();
-    if (!isPuzzleSolved) {
-        walkPuzzleAttempts = 0;
-        updatePuzzleBadge();
-    }
+    // walkPuzzleAttempts = 0 코드를 제거하여 누적 실패 횟수 및 획득 가능 점수를 그대로 유지
 });
 
 puzzleCheckBtn.addEventListener('click', async () => {
