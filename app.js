@@ -59,9 +59,14 @@ const walkMeditationList = document.getElementById('walk-meditation-list');
 const backToHubFromWalk = document.getElementById('back-to-hub-from-walk');
 const walkStreakBadge = document.getElementById('walk-streak-badge');
 
-// 🌟 신규 달력 피커 요소
+// 🌟 커스텀 월 달력 모달 요소
 const calendarTriggerBtn = document.getElementById('calendar-trigger-btn');
-const walkDatePicker = document.getElementById('walk-date-picker');
+const walkCalendarModal = document.getElementById('walk-calendar-modal');
+const calMonthTitle = document.getElementById('cal-month-title');
+const calDaysContainer = document.getElementById('cal-days-container');
+const calPrevBtn = document.getElementById('cal-prev-btn');
+const calNextBtn = document.getElementById('cal-next-btn');
+const closeCalendarBtn = document.getElementById('close-calendar-btn');
 
 // 모달 요소
 const rewardModal = document.getElementById('reward-modal');
@@ -93,13 +98,17 @@ let currentCorrectAnswer = "";
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
 
-// 퍼즐 상태 변수
+// 퍼즐 및 달력 상태 변수
 let currentWalkPlan = null;
 let selectedTiles = [];
 let walkPuzzleAttempts = 0;
 let isPuzzleSolved = false;
 let userLastSolvedDailyDate = ""; // 오늘 퍼즐 완수 일자 (YYYY-MM-DD)
 let viewingPlanDateStr = "";      // 현재 조회 중인 날짜 (YYYY-MM-DD)
+
+// 달력 뷰어 현재 연/월
+let calViewYear = 2026;
+let calViewMonth = 9; // 1~12월
 
 // 자동 로그인 복원
 const savedName = localStorage.getItem('bibleQuizUser');
@@ -466,16 +475,14 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 날짜 선택 및 중복 방지 로직]
+// [모드 2: 『진리의 빛 안에서』 월간 캘린더 모달 및 렌더링 로직]
 // -------------------------------------------------------------
 
-// 날짜 기준 플랜 검색 함수
 function findWalkPlanByDate(month, day) {
     const found = walkInData.find(item => item.month === month && item.day === day);
     return found || walkInData[0];
 }
 
-// 기본 오늘 날짜 성구 로드
 function getTodayWalkPlan() {
     const today = new Date();
     const m = today.getMonth() + 1;
@@ -483,25 +490,23 @@ function getTodayWalkPlan() {
     return findWalkPlanByDate(m, d);
 }
 
-// 『진리의 빛 안에서』 초기화 및 렌더링
 function setupWalkMode(customDateStr = null) {
     const todayStr = getTodayDateString();
 
     if (customDateStr) {
-        // 사용자가 달력으로 날짜를 선택한 경우
         viewingPlanDateStr = customDateStr;
         const [y, m, d] = customDateStr.split('-').map(Number);
         currentWalkPlan = findWalkPlanByDate(m, d);
+        calViewYear = y;
+        calViewMonth = m;
     } else {
-        // 기본 오늘 날짜 진입
         viewingPlanDateStr = todayStr;
         currentWalkPlan = getTodayWalkPlan();
+        const today = new Date();
+        calViewYear = today.getFullYear();
+        calViewMonth = today.getMonth() + 1;
     }
 
-    // 날짜 피커 값 동기화
-    walkDatePicker.value = viewingPlanDateStr;
-
-    // 완료 여부 검사: 오늘 날짜를 조회 중이고, 오늘 이미 완료한 기록이 있는 경우에만 완료 상태
     const isToday = (viewingPlanDateStr === todayStr);
     isPuzzleSolved = isToday && (userLastSolvedDailyDate === todayStr);
 
@@ -509,7 +514,6 @@ function setupWalkMode(customDateStr = null) {
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
 
-    // 상태 태그 초기화
     walkStatusTag.innerText = "읽기 전";
     walkStatusTag.style.background = "#FEF3C7";
     walkStatusTag.style.color = "#B45309";
@@ -550,25 +554,92 @@ function setupWalkMode(customDateStr = null) {
     setupWordPuzzle();
 }
 
-// 🌟 달력 아이콘 클릭 및 날짜 변경 이벤트 바인딩
-calendarTriggerBtn.addEventListener('click', () => {
-    try {
-        if (typeof walkDatePicker.showPicker === 'function') {
-            walkDatePicker.showPicker();
-        } else {
-            walkDatePicker.click();
+// 🌟 월 달력 동적 렌더링 함수
+function renderWalkCalendar(year, month) {
+    calMonthTitle.innerText = `${year}년 ${month}월`;
+    calDaysContainer.innerHTML = '';
+
+    // 해당 월의 첫날 요일 및 총 일수 계산
+    const firstDayIndex = new Date(year, month - 1, 1).getDay(); // 0(일) ~ 6(토)
+    const totalDays = new Date(year, month, 0).getDate();
+
+    const todayStr = getTodayDateString();
+
+    // 시작 요일까지의 빈 칸 채우기
+    for (let i = 0; i < firstDayIndex; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'cal-day-cell disabled';
+        calDaysContainer.appendChild(emptyCell);
+    }
+
+    // 1일부터 말일까지 채우기
+    for (let day = 1; day <= totalDays; day++) {
+        const dayCell = document.createElement('div');
+        dayCell.className = 'cal-day-cell';
+        dayCell.innerText = day;
+
+        const thisDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+        // 오늘 날짜 표시
+        if (thisDateStr === todayStr) {
+            dayCell.classList.add('today');
         }
-    } catch (e) {
-        walkDatePicker.style.display = "inline-block";
-        walkDatePicker.focus();
+
+        // 현재 선택된 날짜 표시
+        if (thisDateStr === viewingPlanDateStr) {
+            dayCell.classList.add('selected');
+        }
+
+        // 우리 데이터베이스(2026년 9월 17일 ~ 12월 31일)에 존재하는지 검사
+        const hasData = walkInData.some(item => item.month === month && item.day === day && year === 2026);
+        if (hasData) {
+            dayCell.classList.add('has-data');
+            dayCell.style.color = "#EA580C";
+        }
+
+        // 날짜 클릭 이벤트
+        dayCell.onclick = () => {
+            walkCalendarModal.style.display = 'none';
+            setupWalkMode(thisDateStr);
+        };
+
+        calDaysContainer.appendChild(dayCell);
+    }
+}
+
+// 달력 열기 버튼 클릭 이벤트
+calendarTriggerBtn.addEventListener('click', () => {
+    // 2026년 9월부터 12월 범위 내에서 열리도록 설정
+    if (calViewYear !== 2026) calViewYear = 2026;
+    if (calViewMonth < 9) calViewMonth = 9;
+    if (calViewMonth > 12) calViewMonth = 12;
+
+    renderWalkCalendar(calViewYear, calViewMonth);
+    walkCalendarModal.style.display = 'flex';
+});
+
+// 달력 이전달 버튼
+calPrevBtn.addEventListener('click', () => {
+    if (calViewMonth > 9) {
+        calViewMonth--;
+        renderWalkCalendar(calViewYear, calViewMonth);
+    } else {
+        alert("성구 데이터는 2026년 9월부터 제공됩니다. 😊");
     }
 });
 
-walkDatePicker.addEventListener('change', (e) => {
-    const selectedDate = e.target.value;
-    if (selectedDate) {
-        setupWalkMode(selectedDate);
+// 달력 다음달 버튼
+calNextBtn.addEventListener('click', () => {
+    if (calViewMonth < 12) {
+        calViewMonth++;
+        renderWalkCalendar(calViewYear, calViewMonth);
+    } else {
+        alert("성구 데이터는 2026년 12월까지 제공됩니다. 😊");
     }
+});
+
+closeCalendarBtn.addEventListener('click', () => {
+    walkCalendarModal.style.display = 'none';
 });
 
 function updatePuzzleBadge() {
@@ -672,12 +743,10 @@ puzzleResetBtn.addEventListener('click', () => {
     }
 });
 
-// 완성 확인 버튼 클릭 이벤트 (오늘 날짜 1회만 점수 지급, 다른 날짜는 복습 모드)
 puzzleCheckBtn.addEventListener('click', async () => {
     const todayStr = getTodayDateString();
     const isToday = (viewingPlanDateStr === todayStr);
 
-    // 1. 오늘 날짜인데 이미 획득한 경우 차단
     if (isToday && (isPuzzleSolved || userLastSolvedDailyDate === todayStr)) {
         alert("오늘의 일용할 성구 보물을 이미 획득하셨습니다! 내일 새로운 성구에 도전해 보세요. 😊");
         puzzleCheckBtn.disabled = true;
@@ -691,7 +760,6 @@ puzzleCheckBtn.addEventListener('click', async () => {
 
     if (isCorrect) {
         if (isToday) {
-            // [오늘의 성구 완료 시] 보물 지급 및 잠금
             isPuzzleSolved = true;
             puzzleCheckBtn.disabled = true;
             puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
@@ -711,8 +779,7 @@ puzzleCheckBtn.addEventListener('click', async () => {
 
             alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 보물: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
         } else {
-            // [다른 날짜 성구 자유 복습 시] 점수 변동 없이 칭찬 메시지만 출력
-            alert(`🎉 완벽합니다! [${currentWalkPlan.date_display}] 성구를 바르게 암송하셨습니다.\n(자유 복습 모드에서는 보물이 추가되지 않습니다. 내일 성구도 기대해 주세요!)`);
+            alert(`🎉 완벽합니다! [${currentWalkPlan.date_display}] 성구를 바르게 암송하셨습니다.\n(자유 복습 모드에서는 보물이 추가되지 않습니다. 오늘의 성구도 도전해 보세요!)`);
         }
     } else {
         walkPuzzleAttempts++;
