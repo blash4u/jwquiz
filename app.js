@@ -18,11 +18,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 1만 점 헌액 및 9,999점 선물 상수
 const HALL_OF_FAME_TARGET_SCORE = 10000;
 const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1;
 
-// 화면 컨테이너 참조
+// 화면 컨테이너
 const authScreen = document.getElementById('auth-screen');
 const hubScreen = document.getElementById('hub-screen');
 const quizScreen = document.getElementById('quiz-screen');
@@ -41,17 +40,18 @@ const hubLogoutBtn = document.getElementById('hub-logout-btn');
 // 허브 요소
 const hubPlayerDisplay = document.getElementById('hub-player-display');
 const hubScoreText = document.getElementById('hub-score-text');
+const hubLivesBadge = document.getElementById('hub-lives-badge');
 const modeQuizBtn = document.getElementById('mode-quiz-btn');
 const modeWalkBtn = document.getElementById('mode-walk-btn');
 
-// 퀴즈 화면 요소
+// 퀴즈 요소
 const playerDisplay = document.getElementById('player-display');
 const choicesContainer = document.getElementById('choices-container');
 const feedbackContainer = document.getElementById('feedback-container');
 const nextBtn = document.getElementById('next-btn');
 const backToHubFromQuiz = document.getElementById('back-to-hub-from-quiz');
 
-// 『진리의 빛 안에서』 화면 요소
+// 『진리의 빛 안에서』 요소
 const walkPlayerDisplay = document.getElementById('walk-player-display');
 const walkReadingRange = document.getElementById('walk-reading-range');
 const walkStatusTag = document.getElementById('walk-status-tag');
@@ -67,7 +67,7 @@ const walkVisualDesc = document.getElementById('walk-visual-desc');
 const walkMeditationList = document.getElementById('walk-meditation-list');
 const backToHubFromWalk = document.getElementById('back-to-hub-from-walk');
 
-// 보상/랭킹/게임오버 모달 요소
+// 모달 요소
 const rewardModal = document.getElementById('reward-modal');
 const rewardModalIcon = document.getElementById('reward-modal-icon');
 const rewardModalTitle = document.getElementById('reward-modal-title');
@@ -86,29 +86,29 @@ const gameoverModal = document.getElementById('gameover-modal');
 const gameoverRankBox = document.getElementById('gameover-rank-box');
 const gameoverHomeBtn = document.getElementById('gameover-home-btn');
 
-// 앱 상태 관리
+// 전역 게임 상태
 let currentUser = "";
 let quizDataList = [];
 let currentQuizIndex = 0;
 let currentScore = 0;
+let totalLives = 5;          // 남은 라이프 (DB 연동)
+let questionAttempts = 3;    // 문항 내 시도 (3, 2, 1)
 let currentCorrectAnswer = "";
-let totalLives = 5;
-let questionAttempts = 3;
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
 
-// 퍼즐 상태 관리
+// 퍼즐 상태
 let currentWalkPlan = walkInData[0];
 let selectedTiles = [];
 let shuffledTiles = [];
 
-// 자동 로그인 복원
+// 자동 로그인 입력창 복원
 const savedName = localStorage.getItem('bibleQuizUser');
 const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName) usernameInput.value = savedName;
 if (savedPin) pinInput.value = savedPin;
 
-// 관리자 파라미터 체크 (?admin=true)
+// 관리자 파라미터 체크
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('admin') === 'true' && uploadBtn) {
     uploadBtn.style.display = "block";
@@ -144,7 +144,9 @@ function updateScoreBoard() {
 function updateLivesIcon() {
     const icon = document.getElementById('attempts-icon');
     const safeLives = Math.max(0, totalLives);
-    icon.innerText = '❤️'.repeat(safeLives) + '🤍'.repeat(5 - safeLives);
+    const heartsText = '❤️'.repeat(safeLives) + '🤍'.repeat(5 - safeLives);
+    icon.innerText = heartsText;
+    if (hubLivesBadge) hubLivesBadge.innerText = heartsText;
 }
 
 function findVerseText(verseName) {
@@ -154,16 +156,18 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-async function saveUserScore(score) {
+// 🌟 사용자 점수 및 남은 라이프를 동시에 Firestore에 영구 저장
+async function saveUserData(score, lives) {
     if (!currentUser) return;
     try {
         await setDoc(doc(db, "users", currentUser), {
             username: currentUser,
             score: score,
+            lives: lives,
             updatedAt: new Date()
         }, { merge: true });
     } catch (e) {
-        console.error("점수 저장 실패:", e);
+        console.error("데이터 저장 실패:", e);
     }
 }
 
@@ -236,13 +240,25 @@ loginBtn.addEventListener('click', async () => {
             } else if (!userData.pin) {
                 await setDoc(userDocRef, { pin: inputPin }, { merge: true });
             }
+            
+            // 🌟 기존 유저의 점수 및 남은 라이프 복원
             currentScore = userData.score || 0;
+            totalLives = (userData.lives !== undefined) ? userData.lives : 5;
+            
+            // 만약 이전 게임에서 0개로 끝난 상태였다면 5개로 안전 초기화
+            if (totalLives <= 0) {
+                totalLives = 5;
+                await saveUserData(currentScore, totalLives);
+            }
         } else {
+            // 신규 사용자 등록
             currentScore = 0;
+            totalLives = 5;
             await setDoc(userDocRef, {
                 username: inputName,
                 pin: inputPin,
                 score: 0,
+                lives: 5,
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
@@ -252,11 +268,12 @@ loginBtn.addEventListener('click', async () => {
         localStorage.setItem('bibleQuizUser', currentUser);
         localStorage.setItem('bibleQuizPin', inputPin);
 
-        // 허브 진입
         hubPlayerDisplay.innerText = currentUser;
         playerDisplay.innerText = currentUser;
         walkPlayerDisplay.innerText = currentUser;
+        
         updateScoreBoard();
+        updateLivesIcon();
 
         loginBtn.innerText = "학습 센터 입장하기";
         loginBtn.disabled = false;
@@ -283,7 +300,6 @@ hubLogoutBtn.addEventListener('click', () => {
 
 // 모드 1 (퀴즈) 실행
 modeQuizBtn.addEventListener('click', async () => {
-    totalLives = 5;
     if (quizDataList.length === 0) {
         const querySnapshot = await getDocs(collection(db, "quizzes"));
         querySnapshot.forEach((docSnap) => quizDataList.push(docSnap.data()));
@@ -301,12 +317,12 @@ modeWalkBtn.addEventListener('click', () => {
     setupWalkMode();
 });
 
-// 상단 메뉴 버튼(허브로 복귀)
 backToHubFromQuiz.addEventListener('click', () => {
     quizScreen.style.display = 'none';
     feedbackContainer.style.display = 'none';
     hubScreen.style.display = 'block';
     updateScoreBoard();
+    updateLivesIcon();
 });
 
 backToHubFromWalk.addEventListener('click', () => {
@@ -366,7 +382,7 @@ async function handleChoice(choice, btn, quiz) {
         let pts = (questionAttempts === 3) ? 5 : (questionAttempts === 2) ? 3 : 1;
         currentScore += pts;
         updateScoreBoard();
-        saveUserScore(currentScore);
+        await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
 
         const fullText = findVerseText(currentCorrectAnswer);
@@ -375,19 +391,26 @@ async function handleChoice(choice, btn, quiz) {
         questionAttempts--;
         currentScore = Math.max(0, currentScore - 1);
         updateScoreBoard();
-        saveUserScore(currentScore);
+        await saveUserData(currentScore, totalLives);
+        
         btn.classList.add("wrong");
         btn.disabled = true;
 
+        // 🌟 3번째 기회(questionAttempts === 1)가 되면 오답으로 틀린 버튼을 포함해 전체 툴팁 활성화
         if (questionAttempts === 1) {
-            choicesContainer.querySelectorAll('.choice-btn:not(:disabled)').forEach(b => b.classList.add('show-hint'));
+            const allBtns = choicesContainer.querySelectorAll('.choice-btn');
+            allBtns.forEach(b => b.classList.add('show-hint'));
         }
 
+        // 문제를 3번 모두 틀렸을 때만 라이프 1개 차감
         if (questionAttempts <= 0) {
             totalLives--;
             updateLivesIcon();
+            await saveUserData(currentScore, totalLives);
+
+            // 🌟 라이프를 모두 잃었을 때 (0개) -> 점수 0점 리셋 및 게임 오버
             if (totalLives <= 0) {
-                triggerGameOver();
+                await triggerGameOver();
                 return;
             }
             showFeedback(`😢 아쉽습니다! (0점)`, `💡 힌트 성구: ${quiz.hintVerse}\n\n${quiz.hintExplanation}`, false);
@@ -409,6 +432,28 @@ nextBtn.addEventListener('click', () => {
     loadQuestion();
 });
 
+// 🌟 게임 오버 처리: 영적 보물 0점 초기화 및 라이프 5개 재충전
+async function triggerGameOver() {
+    choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
+    
+    // 영적 보물 0개로 리셋 & 다음 도전을 위해 라이프 5개 충전
+    const previousScore = currentScore;
+    currentScore = 0;
+    totalLives = 5;
+    
+    // 클라우드 DB 즉시 동기화
+    await saveUserData(currentScore, totalLives);
+    updateScoreBoard();
+    updateLivesIcon();
+
+    gameoverRankBox.innerHTML = `
+        이전 기록: <strong>💎 ${previousScore}개</strong><br>
+        <span style="color:#EF4444; font-size:0.9rem;">영적 보물이 0개로 리셋되었습니다.</span><br>
+        새로운 라이프(❤️❤️❤️❤️❤️)가 충전되었습니다.
+    `;
+    gameoverModal.style.display = 'flex';
+}
+
 // -------------------------------------------------------------
 // [모드 2: 『진리의 빛 안에서』 로직]
 // -------------------------------------------------------------
@@ -416,20 +461,17 @@ function setupWalkMode() {
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
     
-    // JW Library 딥링크 설정
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    jwLibraryDeeplink.href = isMobile ? currentWalkPlan.reading_range.jw_library_url : currentWalkPlan.reading_range.web_fallback_url;
+    // 🌟 JW.ORG 웹사이트 링크로 연결
+    jwLibraryDeeplink.href = currentWalkPlan.reading_range.web_url;
 
-    // 읽기 완료 체크 로직
     jwLibraryDeeplink.onclick = () => {
         walkStatusTag.innerText = "읽기 완료 ✓";
         walkStatusTag.style.background = "#DCFCE7";
         walkStatusTag.style.color = "#15803D";
         jwLibraryDeeplink.classList.add('completed');
-        jwLibraryDeeplink.innerHTML = "<span>✓ JW Library로 읽음 (다시 열기)</span>";
+        jwLibraryDeeplink.innerHTML = "<span>✓ JW.ORG에서 읽음 (다시 열기)</span>";
     };
 
-    // 시각 자료 및 묵상 요약 설정
     const illu = currentWalkPlan.illustrations[0];
     walkVisualSymbol.innerText = illu.image_symbol;
     walkVisualDesc.innerText = `[${illu.title}] - ${illu.description}`;
@@ -441,7 +483,6 @@ function setupWalkMode() {
         walkMeditationList.appendChild(li);
     });
 
-    // 성구 조각 퍼즐 로드
     setupWordPuzzle();
 }
 
@@ -460,7 +501,7 @@ function setupWordPuzzle() {
 
     shuffledTiles = shuffleArray([...currentWalkPlan.memory_verse.puzzle_tiles]);
 
-    shuffledTiles.forEach((tileText, idx) => {
+    shuffledTiles.forEach((tileText) => {
         const tile = document.createElement('div');
         tile.className = "word-tile";
         tile.innerText = tileText;
@@ -474,13 +515,11 @@ function handleTileClick(tileElement, tileText) {
     if (placeholder) placeholder.remove();
 
     if (tileElement.classList.contains('placed')) {
-        // 드롭존에서 조각 회수
         tileElement.classList.remove('placed');
         selectedTiles = selectedTiles.filter(t => t.element !== tileElement);
         tileElement.remove();
         puzzleTileZone.appendChild(tileElement);
     } else {
-        // 드롭존으로 조각 투입
         tileElement.classList.add('placed');
         puzzleDropZone.appendChild(tileElement);
         selectedTiles.push({ text: tileText, element: tileElement });
@@ -497,7 +536,7 @@ puzzleCheckBtn.addEventListener('click', async () => {
     if (isCorrect) {
         currentScore += 5;
         updateScoreBoard();
-        saveUserScore(currentScore);
+        await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
         alert(`🎉 완벽합니다! 성구를 바르게 암송하셨습니다.\n하늘보물 💎 5점을 획득하셨습니다.\n\n"${currentWalkPlan.memory_verse.full_text}"`);
     } else {
@@ -506,17 +545,8 @@ puzzleCheckBtn.addEventListener('click', async () => {
 });
 
 // -------------------------------------------------------------
-// [보상 & 랭킹 & 게임오버 제어]
+// [보상 & 랭킹 제어]
 // -------------------------------------------------------------
-async function triggerGameOver() {
-    choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
-    gameoverRankBox.innerText = "최종 등수 계산 중...";
-    gameoverModal.style.display = 'flex';
-
-    const rank = await fetchUserRank();
-    gameoverRankBox.innerHTML = `내 하늘보물: <strong>💎 ${currentScore}개</strong><br>전체 순위: <strong>${rank ? rank + "위" : "-"}</strong>`;
-}
-
 async function checkRewardMilestones() {
     if (currentScore >= SURPRISE_GIFT_SCORE && !hasReceivedSurpriseGift) {
         hasReceivedSurpriseGift = true;
@@ -547,7 +577,7 @@ closeRewardBtn.addEventListener('click', () => {
         resetPendingAfterReward = false;
         hasReceivedSurpriseGift = false;
         updateScoreBoard();
-        saveUserScore(currentScore);
+        saveUserData(currentScore, totalLives);
         alert("점수가 0점으로 리셋되었습니다. 다회차 완주에 도전하세요!");
     }
 });
