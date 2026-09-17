@@ -93,6 +93,7 @@ let resetPendingAfterReward = false;
 let currentWalkPlan = null;
 let selectedTiles = [];
 let walkPuzzleAttempts = 0;
+let isPuzzleSolved = false; // 🌟 중복 점수 수령 방지 플래그
 
 // 자동 로그인 복원
 const savedName = localStorage.getItem('bibleQuizUser');
@@ -441,22 +442,18 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 오늘 날짜 일용할 성구 자동 매칭 로직]
+// [모드 2: 『진리의 빛 안에서』 일용할 성구 & 퍼즐 (버그 수정)]
 // -------------------------------------------------------------
 function getTodayWalkPlan() {
     const today = new Date();
     const currentMonth = today.getMonth() + 1;
     const currentDay = today.getDate();
 
-    // 등록된 데이터 중 오늘 날짜와 일치하는 항목 검색
     const foundPlan = walkInData.find(item => item.month === currentMonth && item.day === currentDay);
-
-    // 일치하는 항목이 있으면 반환하고, 없으면 첫 번째 항목을 fallback으로 사용
     return foundPlan ? foundPlan : walkInData[0];
 }
 
 function setupWalkMode() {
-    // 🌟 오늘 날짜 성구 플랜을 동적으로 가져옴
     currentWalkPlan = getTodayWalkPlan();
 
     walkStreakBadge.innerText = `☀️ ${currentWalkPlan.date_display || "오늘의 성구"}`;
@@ -479,11 +476,18 @@ function setupWalkMode() {
     });
 
     walkPuzzleAttempts = 0;
+    isPuzzleSolved = false; // 🌟 진입 시 완료 상태 초기화
+    puzzleCheckBtn.disabled = false;
+    puzzleCheckBtn.innerText = "완성 확인";
     updatePuzzleBadge();
     setupWordPuzzle();
 }
 
 function updatePuzzleBadge() {
+    if (isPuzzleSolved) {
+        puzzleScoreBadge.innerText = "획득 완료 ✓";
+        return;
+    }
     if (walkPuzzleAttempts === 0) {
         puzzleScoreBadge.innerText = "첫 성공 시 💎 10점";
     } else if (walkPuzzleAttempts === 1) {
@@ -518,6 +522,8 @@ function setupWordPuzzle() {
 }
 
 function handleTileFromBank(tileElement, tileText) {
+    if (isPuzzleSolved) return; // 이미 정답을 맞춘 경우 조작 차단
+
     const placeholder = document.getElementById('drop-zone-placeholder');
     if (placeholder) placeholder.remove();
 
@@ -530,6 +536,8 @@ function handleTileFromBank(tileElement, tileText) {
 }
 
 function handleTileInDropZone(tileElement, tileText) {
+    if (isPuzzleSolved) return; // 이미 정답을 맞춘 경우 조작 차단
+
     const currentIndex = selectedTiles.findIndex(t => t.element === tileElement);
     if (currentIndex === -1) return;
 
@@ -548,6 +556,8 @@ function handleTileInDropZone(tileElement, tileText) {
 }
 
 function returnTileToBank(tileElement, tileText) {
+    if (isPuzzleSolved) return;
+
     tileElement.classList.remove('placed');
     tileElement.innerText = tileText;
     tileElement.onclick = () => handleTileFromBank(tileElement, tileText);
@@ -562,15 +572,30 @@ function returnTileToBank(tileElement, tileText) {
 }
 
 puzzleResetBtn.addEventListener('click', () => {
+    // 🌟 이미 정답을 맞춘 상태에서 다시 맞추기를 누를 경우: 점수 중복 수령 없이 연습 모드로 동작
     setupWordPuzzle();
+    if (!isPuzzleSolved) {
+        walkPuzzleAttempts = 0;
+        updatePuzzleBadge();
+    }
 });
 
+// 🌟 [버그 수정 핵심] 완성 확인 버튼 클릭 이벤트
 puzzleCheckBtn.addEventListener('click', async () => {
+    // 1. 이미 오늘 정답을 맞춘 상태라면 중복 보상 지급 차단
+    if (isPuzzleSolved) {
+        alert("오늘의 일용할 성구 암기 보상을 이미 획득하셨습니다! 내일 새로운 성구에 도전해 보세요. 😊");
+        return;
+    }
+
     const correctTiles = currentWalkPlan.memory_verse.puzzle_tiles;
     const isFull = (selectedTiles.length === correctTiles.length);
     const isCorrect = isFull && selectedTiles.every((t, i) => t.text === correctTiles[i]);
 
     if (isCorrect) {
+        // 2. 중복 방지 플래그 즉시 활성화
+        isPuzzleSolved = true;
+
         let earnedPoints = 5;
         if (walkPuzzleAttempts === 0) {
             earnedPoints = 10;
@@ -578,10 +603,16 @@ puzzleCheckBtn.addEventListener('click', async () => {
             earnedPoints = 8;
         }
 
+        // 3. 점수 1회 가산 및 DB 동기화
         currentScore += earnedPoints;
         updateScoreBoard();
         await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
+
+        // 4. 버튼 UI를 '완료' 상태로 잠금
+        puzzleCheckBtn.disabled = true;
+        puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
+        updatePuzzleBadge();
 
         alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 점수: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
     } else {
