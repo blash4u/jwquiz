@@ -59,7 +59,7 @@ const walkMeditationList = document.getElementById('walk-meditation-list');
 const backToHubFromWalk = document.getElementById('back-to-hub-from-walk');
 const walkStreakBadge = document.getElementById('walk-streak-badge');
 
-// 🌟 커스텀 월 달력 모달 요소
+// 커스텀 월 달력 모달 요소
 const calendarTriggerBtn = document.getElementById('calendar-trigger-btn');
 const walkCalendarModal = document.getElementById('walk-calendar-modal');
 const calMonthTitle = document.getElementById('cal-month-title');
@@ -98,17 +98,20 @@ let currentCorrectAnswer = "";
 let hasReceivedSurpriseGift = false;
 let resetPendingAfterReward = false;
 
-// 퍼즐 및 달력 상태 변수
+// 퍼즐 및 상태 보존 변수
 let currentWalkPlan = null;
 let selectedTiles = [];
 let walkPuzzleAttempts = 0;
 let isPuzzleSolved = false;
-let userLastSolvedDailyDate = ""; // 오늘 퍼즐 완수 일자 (YYYY-MM-DD)
-let viewingPlanDateStr = "";      // 현재 조회 중인 날짜 (YYYY-MM-DD)
+
+// 🌟 영구 보존되는 일자 기록 (YYYY-MM-DD)
+let userLastSolvedDailyDate = ""; 
+let userLastReadDailyDate = "";   
+let viewingPlanDateStr = "";      
 
 // 달력 뷰어 현재 연/월
 let calViewYear = 2026;
-let calViewMonth = 9; // 1~12월
+let calViewMonth = 9;
 
 // 자동 로그인 복원
 const savedName = localStorage.getItem('bibleQuizUser');
@@ -116,7 +119,7 @@ const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName) usernameInput.value = savedName;
 if (savedPin) pinInput.value = savedPin;
 
-// 오늘 날짜 문자열 반환 헬퍼 (예: "2026-09-17")
+// 오늘 날짜 문자열 반환 헬퍼 (YYYY-MM-DD)
 function getTodayDateString() {
     const today = new Date();
     const year = today.getFullYear();
@@ -173,7 +176,8 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-async function saveUserData(score, lives, solvedDate = null) {
+// 🌟 사용자 데이터(점수, 목숨, 읽기 완료 일자, 암송 완료 일자)를 영구 저장
+async function saveUserData(score, lives, solvedDate = null, readDate = null) {
     if (!currentUser) return;
     try {
         const updatePayload = {
@@ -182,10 +186,15 @@ async function saveUserData(score, lives, solvedDate = null) {
             lives: lives,
             updatedAt: new Date()
         };
-        if (solvedDate) {
+        if (solvedDate !== null) {
             updatePayload.lastSolvedDailyDate = solvedDate;
             userLastSolvedDailyDate = solvedDate;
             localStorage.setItem(`lastSolvedDailyDate_${currentUser}`, solvedDate);
+        }
+        if (readDate !== null) {
+            updatePayload.lastReadDailyDate = readDate;
+            userLastReadDailyDate = readDate;
+            localStorage.setItem(`lastReadDailyDate_${currentUser}`, readDate);
         }
         await setDoc(doc(db, "users", currentUser), updatePayload, { merge: true });
     } catch (e) {
@@ -263,9 +272,11 @@ loginBtn.addEventListener('click', async () => {
                 await setDoc(userDocRef, { pin: inputPin }, { merge: true });
             }
             
+            // 기존 점수 및 상태 복원
             currentScore = userData.score || 0;
             totalLives = (userData.lives !== undefined) ? userData.lives : 5;
             userLastSolvedDailyDate = userData.lastSolvedDailyDate || localStorage.getItem(`lastSolvedDailyDate_${inputName}`) || "";
+            userLastReadDailyDate = userData.lastReadDailyDate || localStorage.getItem(`lastReadDailyDate_${inputName}`) || "";
             
             if (totalLives <= 0) {
                 totalLives = 5;
@@ -275,12 +286,14 @@ loginBtn.addEventListener('click', async () => {
             currentScore = 0;
             totalLives = 5;
             userLastSolvedDailyDate = "";
+            userLastReadDailyDate = "";
             await setDoc(userDocRef, {
                 username: inputName,
                 pin: inputPin,
                 score: 0,
                 lives: 5,
                 lastSolvedDailyDate: "",
+                lastReadDailyDate: "",
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
@@ -475,7 +488,7 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 월간 캘린더 모달 및 렌더링 로직]
+// [모드 2: 『진리의 빛 안에서』 상태 영구 보존 및 동기화]
 // -------------------------------------------------------------
 
 function findWalkPlanByDate(month, day) {
@@ -508,24 +521,41 @@ function setupWalkMode(customDateStr = null) {
     }
 
     const isToday = (viewingPlanDateStr === todayStr);
+
+    // 🌟 1. 읽기 완료 영구 복원 (오늘 날짜이고 이미 읽은 기록이 있으면 유지)
+    const isReadToday = isToday && (userLastReadDailyDate === todayStr);
+    if (isReadToday) {
+        walkStatusTag.innerText = "읽기 완료 ✓";
+        walkStatusTag.style.background = "#DCFCE7";
+        walkStatusTag.style.color = "#15803D";
+        wolDeeplink.classList.add('completed');
+        wolDeeplink.innerHTML = "<span>✓ 오늘 읽기 완료 (다시 열기)</span>";
+    } else {
+        walkStatusTag.innerText = "읽기 전";
+        walkStatusTag.style.background = "#FEF3C7";
+        walkStatusTag.style.color = "#B45309";
+        wolDeeplink.classList.remove('completed');
+        wolDeeplink.innerHTML = "<span>📖 날마다 성경을 검토함 읽기</span>";
+    }
+
+    // 🌟 2. 암송 완료 영구 복원 (오늘 날짜이고 이미 암송 완료한 기록이 있으면 유지)
     isPuzzleSolved = isToday && (userLastSolvedDailyDate === todayStr);
 
     walkStreakBadge.innerText = `☀️ ${currentWalkPlan.date_display || "성구 묵상"}`;
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
 
-    walkStatusTag.innerText = "읽기 전";
-    walkStatusTag.style.background = "#FEF3C7";
-    walkStatusTag.style.color = "#B45309";
-    wolDeeplink.classList.remove('completed');
-    wolDeeplink.innerHTML = "<span>📖 날마다 성경을 검토함 읽기</span>";
-
-    wolDeeplink.onclick = () => {
+    // 읽기 클릭 시 즉시 영구 저장
+    wolDeeplink.onclick = async () => {
         walkStatusTag.innerText = "읽기 완료 ✓";
         walkStatusTag.style.background = "#DCFCE7";
         walkStatusTag.style.color = "#15803D";
         wolDeeplink.classList.add('completed');
-        wolDeeplink.innerHTML = "<span>✓ 날마다 성경을 검토함 읽음 (다시 열기)</span>";
+        wolDeeplink.innerHTML = "<span>✓ 오늘 읽기 완료 (다시 열기)</span>";
+
+        if (isToday) {
+            await saveUserData(currentScore, totalLives, null, todayStr);
+        }
     };
 
     walkMeditationList.innerHTML = '';
@@ -554,25 +584,21 @@ function setupWalkMode(customDateStr = null) {
     setupWordPuzzle();
 }
 
-// 🌟 월 달력 동적 렌더링 함수
+// 월 달력 렌더링 함수
 function renderWalkCalendar(year, month) {
     calMonthTitle.innerText = `${year}년 ${month}월`;
     calDaysContainer.innerHTML = '';
 
-    // 해당 월의 첫날 요일 및 총 일수 계산
-    const firstDayIndex = new Date(year, month - 1, 1).getDay(); // 0(일) ~ 6(토)
+    const firstDayIndex = new Date(year, month - 1, 1).getDay();
     const totalDays = new Date(year, month, 0).getDate();
-
     const todayStr = getTodayDateString();
 
-    // 시작 요일까지의 빈 칸 채우기
     for (let i = 0; i < firstDayIndex; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'cal-day-cell disabled';
         calDaysContainer.appendChild(emptyCell);
     }
 
-    // 1일부터 말일까지 채우기
     for (let day = 1; day <= totalDays; day++) {
         const dayCell = document.createElement('div');
         dayCell.className = 'cal-day-cell';
@@ -580,24 +606,20 @@ function renderWalkCalendar(year, month) {
 
         const thisDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-        // 오늘 날짜 표시
         if (thisDateStr === todayStr) {
             dayCell.classList.add('today');
         }
 
-        // 현재 선택된 날짜 표시
         if (thisDateStr === viewingPlanDateStr) {
             dayCell.classList.add('selected');
         }
 
-        // 우리 데이터베이스(2026년 9월 17일 ~ 12월 31일)에 존재하는지 검사
         const hasData = walkInData.some(item => item.month === month && item.day === day && year === 2026);
         if (hasData) {
             dayCell.classList.add('has-data');
             dayCell.style.color = "#EA580C";
         }
 
-        // 날짜 클릭 이벤트
         dayCell.onclick = () => {
             walkCalendarModal.style.display = 'none';
             setupWalkMode(thisDateStr);
@@ -607,9 +629,7 @@ function renderWalkCalendar(year, month) {
     }
 }
 
-// 달력 열기 버튼 클릭 이벤트
 calendarTriggerBtn.addEventListener('click', () => {
-    // 2026년 9월부터 12월 범위 내에서 열리도록 설정
     if (calViewYear !== 2026) calViewYear = 2026;
     if (calViewMonth < 9) calViewMonth = 9;
     if (calViewMonth > 12) calViewMonth = 12;
@@ -618,7 +638,6 @@ calendarTriggerBtn.addEventListener('click', () => {
     walkCalendarModal.style.display = 'flex';
 });
 
-// 달력 이전달 버튼
 calPrevBtn.addEventListener('click', () => {
     if (calViewMonth > 9) {
         calViewMonth--;
@@ -628,7 +647,6 @@ calPrevBtn.addEventListener('click', () => {
     }
 });
 
-// 달력 다음달 버튼
 calNextBtn.addEventListener('click', () => {
     if (calViewMonth < 12) {
         calViewMonth++;
@@ -743,6 +761,7 @@ puzzleResetBtn.addEventListener('click', () => {
     }
 });
 
+// 🌟 완성 확인 클릭 시 점수 및 상태 즉시 영구 저장
 puzzleCheckBtn.addEventListener('click', async () => {
     const todayStr = getTodayDateString();
     const isToday = (viewingPlanDateStr === todayStr);
@@ -773,7 +792,9 @@ puzzleCheckBtn.addEventListener('click', async () => {
 
             currentScore += earnedPoints;
             updateScoreBoard();
-            await saveUserData(currentScore, totalLives, todayStr);
+
+            // 🌟 점수와 암송 완료 날짜를 즉시 Firestore & 로컬에 영구 저장
+            await saveUserData(currentScore, totalLives, todayStr, null);
             await checkRewardMilestones();
             updatePuzzleBadge();
 
