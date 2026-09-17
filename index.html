@@ -29,14 +29,12 @@
         .sub-title { font-size: 1.05rem; color: #431407; margin-bottom: 4px; }
         .main-title { font-size: 1.8rem; margin-bottom: 22px; color: #1F2937; font-weight: bold; }
 
-        /* 입력창 디자인 */
         .input-group { margin-bottom: 14px; text-align: left; }
         .input-label { display: block; font-size: 0.92rem; font-weight: bold; color: #431407; margin-bottom: 3px; }
         .input-hint { display: block; font-size: 0.8rem; color: #EA580C; margin-bottom: 5px; }
         .text-input { width: 100%; padding: 13px; border: 1.5px solid #FDBA74; border-radius: 10px; font-size: 1rem; outline: none; background: #fff; }
         .text-input:focus { border-color: #F97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); }
 
-        /* 로비 모드 카드 */
         .mode-card {
             background: #ffffff; border: 2px solid #FED7AA; border-radius: 14px; padding: 18px 16px; margin-bottom: 14px;
             text-align: left; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
@@ -47,7 +45,6 @@
         .mode-title { font-size: 1.15rem; font-weight: bold; color: #1F2937; }
         .mode-desc { font-size: 0.88rem; color: #6B7280; line-height: 1.45; }
 
-        /* 점수판 */
         .score-board { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 1.05rem; font-weight: bold; color: #431407; }
         .user-info-area { display: flex; align-items: center; gap: 6px; }
         .user-badge { font-size: 0.85rem; color: #EA580C; background: #FFEDD5; padding: 4px 9px; border-radius: 12px; }
@@ -56,13 +53,19 @@
         #question-text { font-size: 1.2rem; margin-bottom: 18px; font-weight: bold; line-height: 1.5; text-align: left; color: #111827; }
         #category-title { font-size: 0.92rem; color: #F97316; text-align: left; margin-bottom: 6px; font-weight: bold; }
 
+        /* 5지선다 버튼 */
         .choice-btn { 
             position: relative; display: block; width: 100%; text-align: left; padding: 13px; margin-bottom: 11px;
             background-color: #ffffff; color: #1F2937; border: 1px solid #d1d5db; border-radius: 8px;
             font-size: 1rem; cursor: pointer; transition: background-color 0.2s;
         }
         .choice-btn:hover:not(:disabled) { background-color: #f3f4f6; border-color: #9ca3af; }
-        .choice-btn.wrong { background-color: #f3f4f6; color: #9ca3af; text-decoration: line-through; border-color: #e5e7eb; }
+        
+        /* 🌟 오답 처리된 버튼도 마우스 이벤트 허용하여 툴팁 활성화 */
+        .choice-btn.wrong { 
+            background-color: #f3f4f6; color: #9ca3af; text-decoration: line-through; border-color: #e5e7eb;
+            cursor: default; pointer-events: auto !important; 
+        }
         .choice-number { font-weight: bold; color: #F97316; margin-right: 7px; }
 
         .tooltip-text {
@@ -72,26 +75,29 @@
             font-size: 0.92rem; opacity: 0; transition: opacity 0.2s; pointer-events: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2); white-space: pre-line;
         }
-        .choice-btn.show-hint:hover .tooltip-text { visibility: visible; opacity: 1; }
+        /* 🌟 힌트 활성화 상태에서는 틀린 버튼을 포함한 모든 버튼에서 툴팁 표시 */
+        .choice-btn.show-hint:hover .tooltip-text,
+        .choice-btn.show-hint:active .tooltip-text { 
+            visibility: visible; opacity: 1; 
+        }
 
         .feedback-box { display: none; margin-top: 18px; padding: 18px; background-color: #ffedd5; border-radius: 10px; border: 2px solid #F97316; text-align: left; }
         #feedback-title { margin-bottom: 10px; font-size: 1.15rem; font-weight: bold; }
         #feedback-text { line-height: 1.55; white-space: pre-line; font-size: 0.95rem; }
 
-        /* 『진리의 빛 안에서』 전용 UI */
+        /* 『진리의 빛 안에서』 스타일 */
         .walk-card { background: #ffffff; border-radius: 12px; border: 1.5px solid #FED7AA; padding: 16px; margin-bottom: 14px; text-align: left; }
         .walk-goal-box { background: #FFFBEB; border-left: 4px solid #F59E0B; padding: 12px; border-radius: 6px; margin: 12px 0; }
         .walk-read-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #0284C7; color: #fff; border: none; padding: 13px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; margin-top: 8px; }
         .walk-read-btn.completed { background: #059669; }
         
-        /* 단어 조각 퍼즐 영역 */
         .puzzle-drop-zone { min-height: 70px; background: #FFF7ED; border: 2px dashed #FDBA74; border-radius: 10px; padding: 10px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 12px; }
         .puzzle-tile-zone { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
         .word-tile { background: #ffffff; border: 1.5px solid #F97316; color: #431407; padding: 7px 12px; font-size: 0.95rem; font-weight: bold; border-radius: 20px; cursor: pointer; user-select: none; transition: 0.2s; }
         .word-tile:active { transform: scale(0.95); }
         .word-tile.placed { background: #EA580C; color: #fff; border-color: #C2410C; }
 
-        /* 모달 스타일 */
+        /* 모달 공통 */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.65); z-index: 100;
@@ -121,7 +127,7 @@
     </style>
 </head>
 <body>
-    <!-- 1. 계정 인증 화면 (로그인 화면) -->
+    <!-- 1. 계정 인증 화면 -->
     <div id="auth-screen" class="container">
         <div class="logo-square">
             <span>JW</span>
@@ -146,7 +152,7 @@
         <button id="upload-btn" class="btn-primary" style="width: 100%; background-color: #10B981; font-size: 0.92rem; padding: 10px; display: none;">⚙️ DB 데이터 덮어쓰기 (관리자)</button>
     </div>
 
-    <!-- 2. 모드 선택 허브 (Lobby Screen) -->
+    <!-- 2. 모드 선택 허브 -->
     <div id="hub-screen" class="container" style="display: none;">
         <div class="score-board">
             <span class="user-badge" id="hub-player-display">학습자</span>
@@ -160,18 +166,18 @@
         <div class="mode-card" id="mode-quiz-btn">
             <div class="mode-card-header">
                 <span class="mode-title">🎯 성경 구절 퀴즈</span>
-                <span class="mode-badge">보물 사냥</span>
+                <span class="mode-badge" id="hub-lives-badge">❤️❤️❤️❤️❤️</span>
             </div>
-            <p class="mode-desc">생활 주제별 148개 핵심 구절을 5지선다와 힌트를 통해 탐구하고 하늘보물을 수집합니다.</p>
+            <p class="mode-desc">생활 주제별 148개 핵심 구절을 5지선다로 탐구합니다. 라이프 5개를 지켜 1만 점을 향해 도전하세요!</p>
         </div>
 
-        <!-- 모드 2: 진리의 빛 안에서 (읽기 & 암기 워크북) -->
+        <!-- 모드 2: 진리의 빛 안에서 -->
         <div class="mode-card" id="mode-walk-btn">
             <div class="mode-card-header">
                 <span class="mode-title">📖 진리의 빛 안에서</span>
                 <span class="mode-badge" style="background:#E0F2FE; color:#0369A1;">신규 모드</span>
             </div>
-            <p class="mode-desc">JW Library 딥링크 통독, 중심 질문 묵상, 단어 조각 잇기 퍼즐로 성구를 완벽 암송합니다.</p>
+            <p class="mode-desc">JW.ORG 공식 성경 읽기, 중심 질문 묵상, 단어 조각 잇기 퍼즐로 성구를 완벽 암송합니다.</p>
         </div>
 
         <button id="hub-view-ranking-btn" class="btn-secondary" style="width: 100%; margin-top: 10px;">🏆 명예의 전당 열람</button>
@@ -202,7 +208,7 @@
         </div>
     </div>
 
-    <!-- 4. 모드 2: 『진리의 빛 안에서』 성경 읽기 & 암기 화면 -->
+    <!-- 4. 모드 2: 『진리의 빛 안에서』 화면 -->
     <div id="walk-screen" class="container" style="display: none;">
         <div class="score-board">
             <div class="user-info-area">
@@ -212,7 +218,6 @@
             <button id="back-to-hub-from-walk" class="btn-mini" style="border: 1px solid #9CA3AF; color: #4B5563;">⌂ 메뉴</button>
         </div>
 
-        <!-- 1) 성경 읽기 섹션 -->
         <div class="walk-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 id="walk-reading-range" style="font-size: 1.2rem; color: #0369A1;">마태복음 5-7장</h3>
@@ -224,26 +229,20 @@
                 <p id="walk-goal-question" style="font-size: 0.95rem; color: #78350F; line-height: 1.45;"></p>
             </div>
 
-            <!-- JW Library 딥링크 버튼 -->
-            <a id="jw-library-deeplink" href="#" class="walk-read-btn" target="_blank">
-                <span>📖 JW Library로 이동하여 읽기</span>
+            <!-- 🌟 JW.ORG 웹사이트 링크로 수정 -->
+            <a id="jw-library-deeplink" href="#" class="walk-read-btn" target="_blank" rel="noopener noreferrer">
+                <span>📖 JW.ORG에서 신세계역 성경 읽기</span>
             </a>
-            <p style="font-size: 0.78rem; color: #6B7280; text-align: center; margin-top: 6px;">
-                (앱이 없거나 PC인 경우 온라인 성경으로 연결됩니다)
-            </p>
         </div>
 
-        <!-- 2) 단어 조각 잇기 퍼즐 암기 섹션 -->
         <div class="walk-card">
             <h3 style="font-size: 1.05rem; color: #431407; margin-bottom: 6px;">🧩 성구 조각 맞추기 암송</h3>
             <p id="puzzle-verse-ref" style="font-size: 0.88rem; color: #EA580C; font-weight: bold; margin-bottom: 10px;"></p>
             
-            <!-- 조립 창 -->
             <div class="puzzle-drop-zone" id="puzzle-drop-zone">
                 <span style="font-size: 0.85rem; color: #9CA3AF;" id="drop-zone-placeholder">아래 단어 조각을 순서대로 터치하세요.</span>
             </div>
 
-            <!-- 단어 조각 보관함 -->
             <div class="puzzle-tile-zone" id="puzzle-tile-zone"></div>
 
             <div style="display: flex; gap: 8px;">
@@ -252,7 +251,6 @@
             </div>
         </div>
 
-        <!-- 3) 묵상 요약 카드 -->
         <div class="walk-card" style="background: #F0FDF4; border-color: #86EFAC;">
             <h4 style="font-size: 0.95rem; color: #166534; margin-bottom: 6px;">💡 오늘의 요점 및 시각 자료</h4>
             <div id="walk-visual-symbol" style="font-size: 2rem; text-align: center; margin: 4px 0;">⛰️📖</div>
@@ -297,11 +295,12 @@
             <div class="modal-icon">👏✨</div>
             <h2 class="modal-title">수고하셨습니다!</h2>
             <p class="modal-desc" id="gameover-desc" style="font-size: 1rem; line-height: 1.5;">
-                준비된 목숨이 소진되었습니다.<br>
-                성경 말씀을 부지런히 탐구하셨습니다!
+                준비된 5개의 라이프가 모두 소진되었습니다.<br>
+                <strong>모으신 영적 보물이 0개로 초기화되며,</strong><br>
+                라이프가 5개로 재충전되었습니다. 다시 도전해 보세요!
             </p>
             <div class="coupon-box" id="gameover-rank-box">
-                현재 등수 확인 중...
+                점수 리셋 처리 중...
             </div>
             <button id="gameover-home-btn" class="btn-primary" style="width: 100%;">학습 센터로 돌아가기</button>
         </div>
