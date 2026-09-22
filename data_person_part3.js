@@ -1,12 +1,13 @@
 // data_person_part3.js
 // 「용기 있게 하느님과 함께 걸으십시오」 3부 (41장~54장) 전체 인물 데이터
+// 공식 CDN 이미지 URL 규칙 매칭 완료 (1102025941 ~ 1102025954)
 
 export const personPart3 = [
-  // 41장: 스가랴와 엘리사벳
+  // 41장: 스가랴와 엘리사벳 (41)
   {
     id: "person_ch41",
     chapter: 41,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025941/univ/art/1102025941_univ_cnt_1_xl.jpg",
     clues: [
       "모든 계명과 요구 조건에 따라 흠 없이 걸으며 '하느님 앞에 의로운' 삶을 살았던 제사장 부부입니다.",
       "두 사람 모두 나이가 많아 자녀가 없었으나 성전에서 천사 가브리엘로부터 아들을 낳을 것이라는 약속을 받았습니다.",
@@ -17,11 +18,11 @@ export const personPart3 = [
     reference: "누가복음 1:5-25, 57-66"
   },
 
-  // 42장: 마리아 (예수의 어머니)
+  // 42장: 마리아 - 예수의 어머니 (42)
   {
     id: "person_ch42",
     chapter: 42,
-    image: "https://assets.jw.org/assets/m/ia/univ/ia_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025942/univ/art/1102025942_univ_cnt_1_xl.jpg",
     clues: [
       "처녀의 몸으로 메시아의 어머니가 될 것이라는 가브리엘 천사의 엄청난 소식을 믿음으로 받아들였습니다.",
       "사회의 오해와 돌팔매질의 위험 속에서도 '저는 여호와의 여종입니다'라며 온전히 복종했습니다.",
@@ -32,11 +33,11 @@ export const personPart3 = [
     reference: "누가복음 1:26-38; 요한복음 19:25-27"
   },
 
-  // 43장: 요셉 (예수의 양부)
+  // 43장: 요셉 - 예수의 양부 (43)
   {
     id: "person_ch43",
     chapter: 43,
-    image: "https://assets.jw.org/assets/m/ia/univ/ia_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025943/univ/art/1102025943_univ_cnt_1_xl.jpg",
     clues: [
       "의로운 목수로서, 정혼녀 마리아가 성령으로 잉태했다는 천사의 지시를 꿈에서 받고 기꺼이 아내로 맞아들였습니다.",
       "헤롯 왕이 아기를 죽이려 할 때 밤중에 즉시 일어나 가족을 데리고 이집트로 피신했습니다.",
@@ -47,11 +48,11 @@ export const personPart3 = [
     reference: "마태복음 1:18-25; 2:13-15; 누가복음 2:41-52"
   },
 
-  // 44장: 침례자 요한
+  // 44장: 침례자 요한 (44)
   {
     id: "person_ch44",
     chapter: 44,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025944/univ/art/1102025944_univ_cnt_1_xl.jpg",
     clues: [
       "낙타털 옷을 입고 메뚜기와 들꿀을 먹으며 광야에서 회개의 침례를 전파하여 메시아의 길을 예비했습니다.",
       "예수께서 나아오실 때 '세상 죄를 지고 가는 하느님의 어린양'임을 사람들에게 공개적으로 증언했습니다.",
@@ -62,11 +63,11 @@ export const personPart3 = [
     reference: "마태복음 3:1-17; 14:1-12; 요한복음 1:29"
   },
 
-  // 45장: 베드로 (부르심을 받다)
+  // 45장: 베드로 - 부르심을 받다 (45)
   {
     id: "person_ch45",
     chapter: 45,
-    image: "https://assets.jw.org/assets/m/ia/univ/ia_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025945/univ/art/1102025945_univ_cnt_1_xl.jpg",
     clues: [
       "밤새 물고기를 한 마리도 잡지 못했으나 주의 말씀에 의지해 깊은 데로 그물을 던져 배가 잠길 만큼 잡았습니다.",
       "기적을 목도한 뒤 예수의 무릎 앞에 엎드려 '주여, 저를 떠나십시오. 저는 죄 많은 사람입니다'라고 고백했습니다.",
@@ -77,11 +78,11 @@ export const personPart3 = [
     reference: "누가복음 5:1-11; 마태복음 4:18-20"
   },
 
-  // 46장: 막달라 마리아
+  // 46장: 막달라 마리아 (46)
   {
     id: "person_ch46",
     chapter: 46,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025946/univ/art/1102025946_univ_cnt_1_xl.jpg",
     clues: [
       "일곱 악귀에서 놓여난 뒤 자신의 소유로 예수와 사도들의 전파 여행을 충성스럽게 섬겼습니다.",
       "예수께서 기둥에 달려 돌아가실 때와 무덤에 묻히실 때 곁을 떠나지 않고 지켰습니다.",
@@ -92,11 +93,11 @@ export const personPart3 = [
     reference: "누가복음 8:1-3; 요한복음 20:11-18"
   },
 
-  // 47장: 나사로의 누이 마리아
+  // 47장: 나사로의 누이 마리아 (47)
   {
     id: "person_ch47",
     chapter: 47,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025947/univ/art/1102025947_univ_cnt_1_xl.jpg",
     clues: [
       "예수께서 집에 오셨을 때 분주한 음식 준비 대신 발치에 앉아 주의 가르침을 조용히 경청했습니다.",
       "예수의 장례를 앞두고 일 년 치 품삯에 달하는 매우 값비싼 순 나드 향유를 주님의 머리와 발에 부었습니다.",
@@ -107,11 +108,11 @@ export const personPart3 = [
     reference: "누가복음 10:38-42; 요한복음 12:1-8; 마가복음 14:3-9"
   },
 
-  // 48장: 스데반
+  // 48장: 스데반 (48)
   {
     id: "person_ch48",
     chapter: 48,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025948/univ/art/1102025948_univ_cnt_1_xl.jpg",
     clues: [
       "믿음과 성령과 지혜가 충만하여 1세기 예루살렘 회중의 구호 활동을 훌륭하게 돌본 봉사자였습니다.",
       "산헤드린 공회 앞에서 아브라함부터 그리스도에 이르기까지 이스라엘의 반역 역사를 천사의 얼굴처럼 담대히 증언했습니다.",
@@ -122,11 +123,11 @@ export const personPart3 = [
     reference: "사도행전 6:1-15; 7:1-60"
   },
 
-  // 49장: 베드로 (바위와 같은 사람)
+  // 49장: 베드로 - 바위와 같은 사람 (49)
   {
     id: "person_ch49",
     chapter: 49,
-    image: "https://assets.jw.org/assets/m/ia/univ/ia_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025949/univ/art/1102025949_univ_cnt_1_xl.jpg",
     clues: [
       "예수를 세 번 부인하고 통곡하는 뼈아픈 실패를 겪었지만 부활하신 주님의 사랑으로 회복되었습니다.",
       "오순절 날 성령을 받고 담대히 일어나 유대인들에게 메시아를 전파하여 하루에 3000명을 침례받게 했습니다.",
@@ -137,11 +138,11 @@ export const personPart3 = [
     reference: "사도행전 2:14-41; 4:18-20; 5:29"
   },
 
-  // 50장: 타르수스의 사울 (바울)
+  // 50장: 타르수스의 사울 - 바울 (50)
   {
     id: "person_ch50",
     chapter: 50,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025950/univ/art/1102025950_univ_cnt_1_xl.jpg",
     clues: [
       "그리스도인들을 맹렬히 박해하다가 다마스쿠스로 가는 길에 부활하신 예수의 밝은 빛을 보고 눈이 멀었습니다.",
       "자신의 과거 종교적 배경과 특권을 배설물처럼 버리고 이방인을 위한 택함받은 그릇으로 변모했습니다.",
@@ -152,11 +153,11 @@ export const personPart3 = [
     reference: "사도행전 9:1-22; 빌립보서 3:7, 8"
   },
 
-  // 51장: 바나바
+  // 51장: 바나바 (51)
   {
     id: "person_ch51",
     chapter: 51,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025951/univ/art/1102025951_univ_cnt_1_xl.jpg",
     clues: [
       "'위로의 아들'이라는 별명을 가졌으며 밭을 팔아 가난한 형제들을 돕기 위해 사도들의 발 앞에 바쳤습니다.",
       "모두가 두려워하던 회심자 사울(바울)을 변호하여 예루살렘 사도들에게 따뜻하게 연결해 주었습니다.",
@@ -167,11 +168,11 @@ export const personPart3 = [
     reference: "사도행전 4:36, 37; 9:26, 27; 11:22-26"
   },
 
-  // 52장: 마가
+  // 52장: 마가 (52)
   {
     id: "person_ch52",
     chapter: 52,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025952/univ/art/1102025952_univ_cnt_1_xl.jpg",
     clues: [
       "첫 선교 여행 중 중도에 집으로 돌아가는 실수를 범하여 바울과 바나바 사이에 다툼을 일으켰던 젊은이입니다.",
       "실망에 주저앉지 않고 베드로와 바나바 곁에서 성실히 봉사하며 신뢰를 회복했습니다.",
@@ -182,11 +183,11 @@ export const personPart3 = [
     reference: "사도행전 13:13; 15:36-39; 디모데 후서 4:11"
   },
 
-  // 53장: 사도 바울
+  // 53장: 사도 바울 (53)
   {
     id: "person_ch53",
     chapter: 53,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025953/univ/art/1102025953_univ_cnt_1_xl.jpg",
     clues: [
       "세 차례의 광범위한 선교 여행을 다니며 매 맞음, 돌에 맞음, 파선, 감옥에 갇히는 온갖 고난을 인내했습니다.",
       "로마 총독들과 아그립바 왕, 카이사르 앞에서도 쇠사슬에 묶인 채 그리스도의 부활을 웅변했습니다.",
@@ -197,11 +198,11 @@ export const personPart3 = [
     reference: "사도행전 26:1-32; 고린도 후서 11:23-28; 디모데 후서 4:6-8"
   },
 
-  // 54장: 사도 요한
+  // 54장: 사도 요한 (54)
   {
     id: "person_ch54",
     chapter: 54,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025954/univ/art/1102025954_univ_cnt_1_xl.jpg",
     clues: [
       "예수께서 십자가(형주)에서 자신의 어머니 마리아를 부탁하셨던 가장 사랑하시던 사도였습니다.",
       "로마의 박해로 밧모섬에 유배되어 계시록을 기록했고, 복음서와 세 통의 편지로 사랑을 강조했습니다.",
