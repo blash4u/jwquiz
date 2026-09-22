@@ -1,13 +1,13 @@
 // app.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs, getDoc, doc, setDoc, query, orderBy 
+    getFirestore, collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js"; 
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
 
-// 인물 데이터 안전 임포트 (파일 로딩 에러 방어)
+// 인물 데이터 안전 임포트
 let personData = [];
 try {
     const personModule = await import("./data_person.js");
@@ -19,7 +19,7 @@ try {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🌟 [점수 현실화] 명예의 전당 기준을 1,000점으로 조정 (원하는 값으로 변경 가능)
+// 명예의 전당 목표 점수 (1,000점)
 const HALL_OF_FAME_TARGET_SCORE = 1000;
 const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1; // 999점
 
@@ -30,9 +30,10 @@ const quizScreen = document.getElementById('quiz-screen');
 const walkScreen = document.getElementById('walk-screen');
 const personScreen = document.getElementById('person-screen');
 
-// 인증 요소
+// 인증 및 관리자 요소
 const loginBtn = document.getElementById('login-btn');
 const uploadBtn = document.getElementById('upload-btn');
+const adminManageBtn = document.getElementById('admin-manage-btn');
 const viewRankingBtn = document.getElementById('view-ranking-btn');
 const hubViewRankingBtn = document.getElementById('hub-view-ranking-btn');
 const inQuizRankingBtn = document.getElementById('in-quiz-ranking-btn');
@@ -112,6 +113,12 @@ const gameoverModal = document.getElementById('gameover-modal');
 const gameoverRankBox = document.getElementById('gameover-rank-box');
 const gameoverHomeBtn = document.getElementById('gameover-home-btn');
 
+// 관리자 모달 요소
+const adminModal = document.getElementById('admin-modal');
+const adminUserTbody = document.getElementById('admin-user-tbody');
+const adminSearchInput = document.getElementById('admin-search-input');
+const closeAdminBtn = document.getElementById('close-admin-btn');
+
 // 전역 게임 상태 변수
 let currentUser = "";
 let quizDataList = [];
@@ -140,6 +147,9 @@ let calViewMonth = 9;
 let personList = [];
 let currentPersonIndex = 0;
 
+// 관리자 데이터 캐시
+let adminUsersList = [];
+
 // 오늘 날짜 헬퍼 (YYYY-MM-DD)
 function getTodayDateString() {
     const today = new Date();
@@ -149,18 +159,10 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
-// 🌟 [익명화 헬퍼] 본인 외 타인의 실명을 안전하게 마스킹 처리하는 함수
+// 🌟 [완전 익명화 헬퍼] 본인 이름 외에는 전체를 무조건 '***'로 마스킹
 function maskName(name, isMe) {
-    if (isMe) return name; // 본인은 실명 그대로 반환
-    if (!name) return "익명";
-    const str = String(name).trim();
-    if (str.length <= 1) return str;
-    if (str.length === 2) {
-        return str[0] + "*"; // 예: "김철" -> "김*"
-    }
-    // 3글자 이상: 첫 글자와 마지막 글자만 남기고 가운데 마스킹 (예: "홍길동" -> "홍*동")
-    const midMask = "*".repeat(str.length - 2);
-    return str[0] + midMask + str[str.length - 1];
+    if (isMe) return name; // 본인인 경우 실명 유지
+    return "***"; // 타인은 글자 수와 상관없이 전체를 '***'로 일괄 마스킹
 }
 
 // 자동 로그인 입력 복원
@@ -169,10 +171,11 @@ const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName && usernameInput) usernameInput.value = savedName;
 if (savedPin && pinInput) pinInput.value = savedPin;
 
-// 관리자 파라미터 체크 (?admin=true)
+// 🌟 관리자 파라미터 체크 (?admin=true)
 const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('admin') === 'true' && uploadBtn) {
-    uploadBtn.style.display = "block";
+if (urlParams.get('admin') === 'true') {
+    if (uploadBtn) uploadBtn.style.display = "block";
+    if (adminManageBtn) adminManageBtn.style.display = "block";
 }
 
 if (uploadBtn) {
@@ -1048,7 +1051,30 @@ async function checkRewardMilestones() {
     }
 }
 
-// 🌟 [순위표 개편] 상위 30위까지 표시 + 본인 외 익명화(마스킹) 처리
+function showRewardModal(icon, title, desc, badge, willReset) {
+    rewardModalIcon.innerText = icon;
+    rewardModalTitle.innerText = title;
+    rewardModalDesc.innerHTML = desc;
+    rewardModalBadge.innerText = badge;
+    resetPendingAfterReward = willReset;
+    rewardModal.style.display = 'flex';
+}
+
+if (closeRewardBtn) {
+    closeRewardBtn.addEventListener('click', () => {
+        rewardModal.style.display = 'none';
+        if (resetPendingAfterReward) {
+            currentScore = 0;
+            resetPendingAfterReward = false;
+            hasReceivedSurpriseGift = false;
+            updateScoreBoard();
+            saveUserData(currentScore, totalLives);
+            alert("점수가 0점으로 리셋되었습니다. 다회차 완주에 도전하세요!");
+        }
+    });
+}
+
+// 🌟 [순위표 TOP 30 & 완전 익명화(***)]
 async function showLeaderboard() {
     tabRealtime.classList.add('active');
     tabHall.classList.remove('active');
@@ -1071,13 +1097,13 @@ async function showLeaderboard() {
             const isMe = (currentUser && d.username === currentUser);
             if (isMe) myRank = rank;
 
-            // 🌟 상위 30위까지 표시
+            // 상위 30위까지 표시
             if (rank <= 30) {
                 const li = document.createElement('li');
                 li.className = `ranking-item ${isMe ? 'my-rank' : ''}`;
                 const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}위`;
                 
-                // 🌟 본인 외 익명(마스킹) 처리
+                // 🌟 완전 익명화: 본인은 실명, 타인은 일괄 '***'
                 const displayName = maskName(d.username, isMe);
 
                 li.innerHTML = `
@@ -1101,7 +1127,7 @@ async function showLeaderboard() {
     }
 }
 
-// 🌟 [명예의 전당] 완주자 명단도 본인 외 익명화(마스킹) 처리
+// 명예의 전당 (완전 익명화 적용)
 async function showHallOfFame() {
     tabHall.classList.add('active');
     tabRealtime.classList.remove('active');
@@ -1155,3 +1181,124 @@ if (gameoverHomeBtn) {
         hubScreen.style.display = 'block';
     });
 }
+
+// -------------------------------------------------------------
+// 🌟 [관리자 전용 기능] 계정 수정/삭제/PIN 재설정 로직
+// -------------------------------------------------------------
+
+// 관리자 테이블 렌더링
+function renderAdminTable(users) {
+    if (!adminUserTbody) return;
+    adminUserTbody.innerHTML = '';
+
+    if (users.length === 0) {
+        adminUserTbody.innerHTML = `<tr><td colspan="4">등록된 학습자가 없습니다.</td></tr>`;
+        return;
+    }
+
+    users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight:bold; color:#1F2937;">${u.username}</td>
+            <td style="color:#EA580C; font-weight:bold;">💎 ${u.score || 0}</td>
+            <td style="font-family:monospace; color:#6B7280;">${u.pin || '없음'}</td>
+            <td>
+                <div style="display:flex; gap:4px; justify-content:center;">
+                    <button class="btn-edit" onclick="window.adminEditUser('${u.username}', ${u.score || 0}, '${u.pin || ''}')">수정</button>
+                    <button class="btn-danger" onclick="window.adminDeleteUser('${u.username}')">삭제</button>
+                </div>
+            </td>
+        `;
+        adminUserTbody.appendChild(tr);
+    });
+}
+
+// 전체 회원 로드
+async function loadAdminUsers() {
+    if (!adminUserTbody) return;
+    adminUserTbody.innerHTML = `<tr><td colspan="4">회원 목록을 불러오는 중...</td></tr>`;
+    try {
+        const q = query(collection(db, "users"), orderBy("score", "desc"));
+        const snap = await getDocs(q);
+        adminUsersList = [];
+        snap.forEach(docSnap => {
+            adminUsersList.push(docSnap.data());
+        });
+        renderAdminTable(adminUsersList);
+    } catch (e) {
+        console.error(e);
+        adminUserTbody.innerHTML = `<tr><td colspan="4" style="color:red;">회원 목록 로드 실패: ${e.message}</td></tr>`;
+    }
+}
+
+// 관리자 모달 열기
+if (adminManageBtn) {
+    adminManageBtn.addEventListener('click', () => {
+        if (adminModal) adminModal.style.display = 'flex';
+        loadAdminUsers();
+    });
+}
+
+if (closeAdminBtn) {
+    closeAdminBtn.addEventListener('click', () => {
+        if (adminModal) adminModal.style.display = 'none';
+    });
+}
+
+// 검색 필터링
+if (adminSearchInput) {
+    adminSearchInput.addEventListener('input', (e) => {
+        const kw = e.target.value.trim().toLowerCase();
+        const filtered = adminUsersList.filter(u => String(u.username).toLowerCase().includes(kw));
+        renderAdminTable(filtered);
+    });
+}
+
+// 전역 window 바인딩: 회원 정보 수정 (점수/PIN/이름)
+window.adminEditUser = async (targetUsername, currentScoreVal, currentPinVal) => {
+    const newScoreStr = prompt(`[${targetUsername}] 학습자의 점수를 수정하세요:`, currentScoreVal);
+    if (newScoreStr === null) return;
+    const newScore = parseInt(newScoreStr, 10);
+    if (isNaN(newScore) || newScore < 0) {
+        alert("올바른 점수(0 이상의 숫자)를 입력해 주세요.");
+        return;
+    }
+
+    const newPin = prompt(`[${targetUsername}] 학습자의 4자리 PIN 비밀번호를 설정하세요:`, currentPinVal);
+    if (newPin === null) return;
+    if (!/^\d{4}$/.test(newPin)) {
+        alert("PIN 비밀번호는 반드시 숫자 4자리여야 합니다.");
+        return;
+    }
+
+    try {
+        const userRef = doc(db, "users", targetUsername);
+        await setDoc(userRef, { score: newScore, pin: newPin, updatedAt: new Date() }, { merge: true });
+        alert(`[${targetUsername}] 학습자 정보가 성공적으로 수정되었습니다!`);
+        loadAdminUsers();
+    } catch (e) {
+        console.error(e);
+        alert(`수정 실패: ${e.message}`);
+    }
+};
+
+// 전역 window 바인딩: 회원 삭제
+window.adminDeleteUser = async (targetUsername) => {
+    if (!confirm(`⚠️ 정말로 [${targetUsername}] 학습자 계정을 영구 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+        return;
+    }
+
+    try {
+        await deleteDoc(doc(db, "users", targetUsername));
+        // 명예의 전당 기록도 함께 삭제 확인
+        try {
+            await deleteDoc(doc(db, "hall_of_fame", targetUsername));
+        } catch (_) {}
+
+        alert(`[${targetUsername}] 계정이 완전히 삭제되었습니다.`);
+        loadAdminUsers();
+    } catch (e) {
+        console.error(e);
+        alert(`삭제 실패: ${e.message}`);
+    }
+};
