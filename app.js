@@ -938,25 +938,26 @@ function loadPersonQuestion() {
     personChoicesContainer.innerHTML = '';
 
     personImage.onerror = () => {
-        const fallbackSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
-            <defs>
-                <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#7E22CE"/>
-                    <stop offset="50%" stop-color="#9333EA"/>
-                    <stop offset="100%" stop-color="#C084FC"/>
-                </linearGradient>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#bgGrad)"/>
-            <circle cx="200" cy="85" r="45" fill="rgba(255,255,255,0.2)"/>
-            <text x="50%" y="98" font-size="38" text-anchor="middle" fill="#FFFFFF">👤</text>
-            <text x="50%" y="155" font-family="'Malgun Gothic', sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#FFFFFF">${currentPerson.correctAnswer}</text>
-            <text x="50%" y="182" font-family="'Malgun Gothic', sans-serif" font-size="13" text-anchor="middle" fill="#F3E8FF">성경 인물 탐구 퀴즈</text>
-        </svg>`.trim();
-        personImage.src = `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
-        personImage.onerror = null;
-    };
+    // 🌟 정답 노출 방지: 인물 이름(${currentPerson.correctAnswer})을 제거하고 중립적인 퀴즈 카드로 대체
+    const fallbackSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
+        <defs>
+            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4C1D95"/>
+                <stop offset="50%" stop-color="#6D28D9"/>
+                <stop offset="100%" stop-color="#8B5CF6"/>
+            </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#bgGrad)"/>
+        <circle cx="200" cy="85" r="45" fill="rgba(255,255,255,0.15)"/>
+        <text x="50%" y="100" font-size="44" text-anchor="middle" fill="#FDE047">❓</text>
+        <text x="50%" y="156" font-family="'Malgun Gothic', sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#FFFFFF">이 인물은 누구일까요?</text>
+        <text x="50%" y="182" font-family="'Malgun Gothic', sans-serif" font-size="13" text-anchor="middle" fill="#DDD6FE">아래 단서를 읽고 정답을 맞춰보세요</text>
+    </svg>`.trim();
 
+    personImage.src = `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
+    personImage.onerror = null; // 무한 루프 방지
+};
     personImage.src = currentPerson.image;
 
     personCluesList.innerHTML = '';
