@@ -1017,38 +1017,35 @@ if (personNextBtn) {
 async function checkRewardMilestones() {
     if (currentScore >= SURPRISE_GIFT_SCORE && !hasReceivedSurpriseGift) {
         hasReceivedSurpriseGift = true;
-        showRewardModal("🎁✨", "기적의 깜짝 선물!", `경이롭습니다! 영적 보물 <strong>${currentScore.toLocaleString()}점</strong>에 도달하셨습니다!<br>명예의 전당(${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점)까지 단 1보 남았습니다.`, `[ ${SURPRISE_GIFT_SCORE}점 전설의 깜짝 선물권 ]`, false);
+        const rewardMsg = `
+            축하합니다! 영적 보물 <strong>${currentScore.toLocaleString()}점</strong>에 도달하셨습니다!<br>
+            명예의 전당(${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점)까지 단 1보 남았습니다.<br><br>
+            <span style="color: #EA580C; font-weight: bold;">
+                📌 깜짝 선물 교환권을 스크린샷하여, 관리자(010-9020-4140)에게 보내주세요.
+            </span>
+        `.trim();
+        
+        showRewardModal(
+            "🎁✨", 
+            "기적의 깜짝 선물!", 
+            rewardMsg, 
+            `[ ${SURPRISE_GIFT_SCORE}점 전설의 깜짝 선물권 ]`, 
+            false
+        );
         return;
     }
 
     if (currentScore >= HALL_OF_FAME_TARGET_SCORE) {
         resetPendingAfterReward = true;
         await saveToHallOfFame();
-        showRewardModal("👑🏛️", "명예의 전당 영구 헌액!", `대기록 정복! 보물 <strong>${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점</strong>을 달성하셨습니다!<br>회원님의 이름이 명예의 전당에 영구 기록되었습니다.`, `[ ${HALL_OF_FAME_TARGET_SCORE}점 마스터 헌액패 ]`, true);
+        showRewardModal(
+            "👑🏛️", 
+            "명예의 전당 영구 헌액!", 
+            `대기록 정복! 보물 <strong>${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점</strong>을 달성하셨습니다!<br>회원님의 이름이 명예의 전당에 영구 기록되었습니다.`, 
+            `[ ${HALL_OF_FAME_TARGET_SCORE}점 마스터 헌액패 ]`, 
+            true
+        );
     }
-}
-
-function showRewardModal(icon, title, desc, badge, willReset) {
-    rewardModalIcon.innerText = icon;
-    rewardModalTitle.innerText = title;
-    rewardModalDesc.innerHTML = desc;
-    rewardModalBadge.innerText = badge;
-    resetPendingAfterReward = willReset;
-    rewardModal.style.display = 'flex';
-}
-
-if (closeRewardBtn) {
-    closeRewardBtn.addEventListener('click', () => {
-        rewardModal.style.display = 'none';
-        if (resetPendingAfterReward) {
-            currentScore = 0;
-            resetPendingAfterReward = false;
-            hasReceivedSurpriseGift = false;
-            updateScoreBoard();
-            saveUserData(currentScore, totalLives);
-            alert("점수가 0점으로 리셋되었습니다. 다회차 완주에 도전하세요!");
-        }
-    });
 }
 
 // 🌟 [순위표 개편] 상위 30위까지 표시 + 본인 외 익명화(마스킹) 처리
