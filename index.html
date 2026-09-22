@@ -48,7 +48,7 @@
         .score-board { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 1.05rem; font-weight: bold; color: #431407; }
         .user-info-area { display: flex; align-items: center; gap: 6px; }
         .user-badge { font-size: 0.85rem; color: #EA580C; background: #FFEDD5; padding: 4px 9px; border-radius: 12px; }
-        #attempts-icon { font-size: 1.1rem; letter-spacing: 2px; }
+        #attempts-icon, #person-attempts-icon { font-size: 1.1rem; letter-spacing: 2px; }
         
         #question-text { font-size: 1.2rem; margin-bottom: 18px; font-weight: bold; line-height: 1.5; text-align: left; color: #111827; }
         #category-title { font-size: 0.92rem; color: #F97316; text-align: left; margin-bottom: 6px; font-weight: bold; }
@@ -78,8 +78,8 @@
         }
 
         .feedback-box { display: none; margin-top: 18px; padding: 18px; background-color: #ffedd5; border-radius: 10px; border: 2px solid #F97316; text-align: left; }
-        #feedback-title { margin-bottom: 10px; font-size: 1.15rem; font-weight: bold; }
-        #feedback-text { line-height: 1.55; white-space: pre-line; font-size: 0.95rem; }
+        #feedback-title, #person-feedback-title { margin-bottom: 10px; font-size: 1.15rem; font-weight: bold; }
+        #feedback-text, #person-feedback-text { line-height: 1.55; white-space: pre-line; font-size: 0.95rem; }
 
         /* 『진리의 빛 안에서』 스타일 */
         .walk-card { background: #ffffff; border-radius: 12px; border: 1.5px solid #FED7AA; padding: 16px; margin-bottom: 14px; text-align: left; }
@@ -87,7 +87,6 @@
         .walk-read-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #0284C7; color: #fff; border: none; padding: 13px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; margin-top: 8px; }
         .walk-read-btn.completed { background: #059669; }
         
-        /* 날짜 및 달력 아이콘 스타일 */
         .date-picker-wrap { display: inline-flex; align-items: center; gap: 6px; }
         .calendar-icon-btn {
             background: #ffffff; border: 1px solid #FDBA74; border-radius: 50%; width: 28px; height: 28px;
@@ -96,7 +95,6 @@
         }
         .calendar-icon-btn:hover { background-color: #FFEDD5; border-color: #F97316; transform: scale(1.08); }
 
-        /* 조립 영역 및 타일 */
         .puzzle-drop-zone { min-height: 85px; background: #FFF7ED; border: 2px dashed #FDBA74; border-radius: 10px; padding: 10px; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 8px; }
         .puzzle-tile-zone { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; min-height: 50px; }
         .word-tile { background: #ffffff; border: 1.5px solid #F97316; color: #431407; padding: 7px 12px; font-size: 0.92rem; font-weight: bold; border-radius: 18px; cursor: pointer; user-select: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 4px; }
@@ -105,7 +103,7 @@
         .word-tile.placed { background: #EA580C; color: #fff; border-color: #C2410C; }
         .tile-arrow { font-size: 0.75rem; opacity: 0.8; margin-left: 2px; }
 
-        /* 커스텀 월 달력 모달 스타일 */
+        /* 월 달력 모달 */
         .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .calendar-nav h3 { font-size: 1.2rem; color: #431407; }
         .cal-nav-btn { background: #FFEDD5; border: 1px solid #F97316; color: #EA580C; font-weight: bold; padding: 5px 12px; border-radius: 15px; cursor: pointer; font-size: 0.85rem; }
@@ -127,7 +125,7 @@
         .cal-day-cell.has-data { font-weight: 900; }
         .cal-day-cell.disabled { opacity: 0.25; cursor: not-allowed; background: transparent; }
 
-        /* 모달 공통 스타일 */
+        /* 모달 공통 */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.65); z-index: 100;
@@ -192,6 +190,7 @@
 
         <h2 style="font-size: 1.45rem; color: #431407; margin-bottom: 18px; font-weight: bold;">학습 모드 선택</h2>
 
+        <!-- 모드 1: 5지선다 구절 퀴즈 -->
         <div class="mode-card" id="mode-quiz-btn">
             <div class="mode-card-header">
                 <span class="mode-title">🎯 성경 구절 퀴즈</span>
@@ -200,12 +199,22 @@
             <p class="mode-desc">생활 주제별 148개 핵심 구절 5지선다 퀴즈입니다. 라이프 5개를 지키며 1만 점을 향해 도전하세요!</p>
         </div>
 
+        <!-- 모드 2: 진리의 빛 안에서 -->
         <div class="mode-card" id="mode-walk-btn">
             <div class="mode-card-header">
                 <span class="mode-title">📖 진리의 빛 안에서</span>
                 <span class="mode-badge" style="background:#FEF3C7; color:#B45309;">일용할 성구</span>
             </div>
-            <p class="mode-desc">날마다 성경을 검토함 읽기와 단어 조각 이동 퍼즐로 오늘의 성구를 마음에 깊이 새깁니다.</p>
+            <p class="mode-desc">날마다 성경을 검토함 공식 읽기와 단어 조각 맞추기 퍼즐로 오늘의 성구를 마음에 새깁니다.</p>
+        </div>
+
+        <!-- 모드 3: 성경 인물 맞추기 신규 추가 -->
+        <div class="mode-card" id="mode-person-btn">
+            <div class="mode-card-header">
+                <span class="mode-title">👤 성경 인물 맞추기</span>
+                <span class="mode-badge" style="background:#F3E8FF; color:#7E22CE;">인물 탐구</span>
+            </div>
+            <p class="mode-desc">역사적인 삽화와 3가지 핵심 단서를 보고 믿음의 본을 보인 인물을 맞추는 4지선다 퀴즈입니다.</p>
         </div>
 
         <button id="hub-view-ranking-btn" class="btn-secondary" style="width: 100%; margin-top: 10px;">🏆 명예의 전당 열람</button>
@@ -243,7 +252,6 @@
                 <span class="user-badge" id="walk-player-display">학습자</span>
                 <div class="date-picker-wrap">
                     <span id="walk-streak-badge">☀️ 일용할 성구</span>
-                    <!-- 🌟 캘린더 모달을 여는 📅 아이콘 버튼 -->
                     <button id="calendar-trigger-btn" class="calendar-icon-btn" title="다른 날짜 성구 달력 보기">📅</button>
                 </div>
             </div>
@@ -292,7 +300,43 @@
         </div>
     </div>
 
-    <!-- 🌟 신규: 커스텀 월 달력 모달 -->
+    <!-- 5. 모드 3: 『성경 인물 맞추기』 화면 -->
+    <div id="person-screen" class="container" style="display: none;">
+        <div class="score-board">
+            <div class="user-info-area">
+                <span class="user-badge" id="person-player-display">학습자</span>
+                <span>💎 <span id="person-score-text">0</span></span>
+            </div>
+            <span id="person-attempts-icon">❤️❤️❤️❤️❤️</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 0.92rem; font-weight: bold; color: #7E22CE;" id="person-progress-text">인물 탐구 퀴즈</span>
+            <button id="back-to-hub-from-person" class="btn-mini" style="border: 1px solid #9CA3AF; color: #4B5563;">⌂ 메뉴</button>
+        </div>
+
+        <!-- 인물 이미지 및 단서 카드 -->
+        <div class="walk-card" style="text-align: center; padding: 14px; border-color: #E9D5FF;">
+            <div style="width: 100%; height: 200px; background: #F3F4F6; border-radius: 10px; overflow: hidden; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; border: 1px solid #E5E7EB;">
+                <img id="person-image" src="" alt="성경 인물 삽화" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            
+            <h4 style="font-size: 0.95rem; color: #7E22CE; margin-bottom: 8px; text-align: left; font-weight: bold;">💡 인물 단서</h4>
+            <ul id="person-clues-list" style="padding-left: 20px; font-size: 0.88rem; color: #374151; line-height: 1.55; text-align: left;"></ul>
+        </div>
+
+        <!-- 4지선다 선택지 컨테이너 -->
+        <div id="person-choices-container"></div>
+
+        <!-- 인물 피드백 창 -->
+        <div id="person-feedback-container" class="feedback-box" style="border-color: #A855F7; background-color: #FAF5FF;">
+            <h3 id="person-feedback-title"></h3>
+            <p id="person-feedback-text"></p>
+            <button id="person-next-btn" class="btn-primary" style="margin-top: 16px; width: 100%; background: #7E22CE;">다음 인물로</button>
+        </div>
+    </div>
+
+    <!-- 6. 커스텀 월 달력 모달 -->
     <div id="walk-calendar-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 360px;">
             <div class="calendar-nav">
@@ -309,7 +353,7 @@
         </div>
     </div>
 
-    <!-- 5. 보상 모달 -->
+    <!-- 7. 보상 모달 -->
     <div id="reward-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon" id="reward-modal-icon">🎁✨</div>
@@ -320,7 +364,7 @@
         </div>
     </div>
 
-    <!-- 6. 순위표 & 명예의 전당 모달 -->
+    <!-- 8. 순위표 & 명예의 전당 모달 -->
     <div id="ranking-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">🏆</div>
@@ -339,7 +383,7 @@
         </div>
     </div>
 
-    <!-- 7. 게임 오버 모달 -->
+    <!-- 9. 게임 오버 모달 -->
     <div id="gameover-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">👏✨</div>
