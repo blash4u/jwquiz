@@ -1,12 +1,13 @@
 // data_person_part2.js
 // 「용기 있게 하느님과 함께 걸으십시오」 2부 (22장~40장) 전체 인물 데이터
+// 공식 CDN 이미지 URL 규칙 매칭 완료 (1102025922 ~ 1102025940)
 
 export const personPart2 = [
-  // 22장: 요나단
+  // 22장: 요나단 (22)
   {
     id: "person_ch22",
     chapter: 22,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025922/univ/art/1102025922_univ_cnt_1_xl.jpg",
     clues: [
       "무기 든 자와 단둘이서 '여호와께서 구원하시는 데는 숫자가 문제 되지 않는다'며 블레셋 수비대를 공격했습니다.",
       "사울의 맏아들로서 왕위를 계승할 위치였지만 여호와께서 다윗을 왕으로 택하셨음을 겸손히 인정했습니다.",
@@ -17,11 +18,11 @@ export const personPart2 = [
     reference: "사무엘상 14:1-15; 18:1-4; 20:1-42"
   },
 
-  // 23장: 다윗 (첫 번째 활약: 골리앗과 대결)
+  // 23장: 다윗 - 골리앗과의 대결 (23)
   {
     id: "person_ch23",
     chapter: 23,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025923/univ/art/1102025923_univ_cnt_1_xl.jpg",
     clues: [
       "키가 거의 3미터에 달하는 거인이 살아 계신 하느님의 군대를 조롱하자 거룩한 분노를 느꼈습니다.",
       "사울 왕의 무거운 갑옷 대신 시냇가에서 고른 매끄러운 돌 다섯 개와 지팡이, 무릿매만 챙겨 나아갔습니다.",
@@ -32,11 +33,11 @@ export const personPart2 = [
     reference: "사무엘상 17:1-54"
   },
 
-  // 24장: 아비가일
+  // 24장: 아비가일 (24)
   {
     id: "person_ch24",
     chapter: 24,
-    image: "https://assets.jw.org/assets/m/ia/univ/ia_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025924/univ/art/1102025924_univ_cnt_1_xl.jpg",
     clues: [
       "거칠고 난폭한 남편 나발이 다윗을 모욕하여 온 집안 남자가 몰살당할 위기에 처했습니다.",
       "풍성한 음식을 싣고 서둘러 나아가 다윗 앞에 엎드려 '여호와의 전쟁'을 수행하는 그가 유혈죄를 짓지 않도록 설득했습니다.",
@@ -47,11 +48,11 @@ export const personPart2 = [
     reference: "사무엘상 25:1-43"
   },
 
-  // 25장: 다윗 (두 번째 활약: 양심에 따른 용기)
+  // 25장: 다윗 - 양심에 따른 용기 (25)
   {
     id: "person_ch25",
     chapter: 25,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025925/univ/art/1102025925_univ_cnt_1_xl.jpg",
     clues: [
       "자신을 죽이려는 사울 왕의 진영에 밤중에 몰래 들어가 깊이 잠든 사울의 머리맡까지 다가갔습니다.",
       "부하 아비새가 단번에 창으로 사울을 찌르게 해 달라고 간청했지만 여호와의 기름부음받은 자를 칠 수 없다며 막았습니다.",
@@ -62,11 +63,11 @@ export const personPart2 = [
     reference: "사무엘상 24:3-7; 26:1-25"
   },
 
-  // 26장: 나단
+  // 26장: 나단 (26)
   {
     id: "person_ch26",
     chapter: 26,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025926/univ/art/1102025926_univ_cnt_1_xl.jpg",
     clues: [
       "밧세바와 간음을 범하고 우리아를 죽음에 이르게 한 다윗 왕을 시정하라는 위험한 임명을 받았습니다.",
       "가난한 사람의 소중한 어린 암양 한 마리를 빼앗아 손님을 대접한 부자의 감동적인 비유를 들려주었습니다.",
@@ -77,11 +78,11 @@ export const personPart2 = [
     reference: "사무엘하 12:1-18"
   },
 
-  // 27장: 므비보셋
+  // 27장: 므비보셋 (27)
   {
     id: "person_ch27",
     chapter: 27,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025927/univ/art/1102025927_univ_cnt_1_xl.jpg",
     clues: [
       "다섯 살 때 아버지 요나단과 할아버지 사울의 전사 소식을 듣고 도망치던 유모의 실수로 두 다리를 다쳤습니다.",
       "종 지바의 거짓 모함으로 인해 다윗 왕에게 오해를 받고 재산을 빼앗기는 불공정을 겪었습니다.",
@@ -92,11 +93,11 @@ export const personPart2 = [
     reference: "사무엘하 4:4; 9:1-13; 19:24-30"
   },
 
-  // 28장: 아사
+  // 28장: 아사 (28)
   {
     id: "person_ch28",
     chapter: 28,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025928/univ/art/1102025928_univ_cnt_1_xl.jpg",
     clues: [
       "유다에서 우상과 신전 남성 매춘부를 없앴으며, 가증한 우상을 만든 할머니 마아가를 태후의 자리에서 폐위시켰습니다.",
       "100만 명에 달하는 에티오피아 대군이 쳐들어왔을 때 '주를 의지하는 자들이 수가 많든 적든 문제가 되지 않습니다'라고 기도했습니다.",
@@ -107,11 +108,11 @@ export const personPart2 = [
     reference: "역대기하 14:1-16:14"
   },
 
-  // 29장: 엘리야
+  // 29장: 엘리야 (29)
   {
     id: "person_ch29",
     chapter: 29,
-    image: "https://assets.jw.org/assets/m/ia/univ/ia_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025929/univ/art/1102025929_univ_cnt_1_xl.jpg",
     clues: [
       "악한 아합 왕의 화려한 궁전에 들어가 자신의 말이 있기 전에는 비도 이슬도 내리지 않을 것이라고 담대히 선언했습니다.",
       "가뭄 기간 동안 그릿 골짜기에서 까마귀가 가져다주는 음식을 먹으며 여호와의 돌보심을 받았습니다.",
@@ -122,11 +123,11 @@ export const personPart2 = [
     reference: "열왕기상 16:29-18:40"
   },
 
-  // 30장: 사르밧의 과부
+  // 30장: 사르밧의 과부 (30)
   {
     id: "person_ch30",
     chapter: 30,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025930/univ/art/1102025930_univ_cnt_1_xl.jpg",
     clues: [
       "가뭄 중에 마지막 남은 밀가루 한 움큼과 기름으로 아들과 빵을 만들어 먹고 죽으려 하던 이방 여인이었습니다.",
       "먼저 예언자를 위해 작은 빵을 만들어 주라는 엘리야의 말을 믿고 순종하여 가뭄이 끝날 때까지 식량이 떨어지지 않았습니다.",
@@ -137,11 +138,11 @@ export const personPart2 = [
     reference: "열왕기상 17:8-24; 누가복음 4:25, 26"
   },
 
-  // 31장: 이스라엘 소녀
+  // 31장: 이스라엘 소녀 (31)
   {
     id: "person_ch31",
     chapter: 31,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025931/univ/art/1102025931_univ_cnt_1_xl.jpg",
     clues: [
       "시리아 군대의 침략으로 가족과 헤어져 나아만 군대 대장의 아내의 시녀로 일하게 된 포로 소녀였습니다.",
       "적국의 낯선 환경에서도 여호와를 잊지 않고 주인 나아만의 심각한 나병에 대해 깊은 동정심을 가졌습니다.",
@@ -152,11 +153,11 @@ export const personPart2 = [
     reference: "열왕기하 5:1-19"
   },
 
-  // 32장: 엘리사
+  // 32장: 엘리사 (32)
   {
     id: "person_ch32",
     chapter: 32,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025932/univ/art/1102025932_univ_cnt_1_xl.jpg",
     clues: [
       "도단 도시를 포위한 시리아 군대를 보고 두려워 떠는 수종에게 '우리와 함께한 자가 더 많다'고 안심시켰습니다.",
       "기도를 통해 수종의 눈을 열어 불말과 불병거가 산을 가득 메우고 있는 하느님의 천사 군대를 보게 했습니다.",
@@ -167,11 +168,11 @@ export const personPart2 = [
     reference: "열왕기하 6:8-24"
   },
 
-  // 33장: 여호야다
+  // 33장: 여호야다 (33)
   {
     id: "person_ch33",
     chapter: 33,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025933/univ/art/1102025933_univ_cnt_1_xl.jpg",
     clues: [
       "악한 아달랴 여왕이 왕족을 학살할 때 목숨을 걸고 갓난아기 여호아스를 성전에서 6년간 숨겨 길렀습니다.",
       "여호아스가 일곱 살이 되자 군대 지휘관들을 모아 그를 왕으로 세우고 반역자 아달랴를 처단했습니다.",
@@ -182,11 +183,11 @@ export const personPart2 = [
     reference: "열왕기하 11:1-12:12; 역대기하 23:1-24:16"
   },
 
-  // 34장: 히스기야
+  // 34장: 히스기야 (34)
   {
     id: "person_ch34",
     chapter: 34,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025934/univ/art/1102025934_univ_cnt_1_xl.jpg",
     clues: [
       "아시리아의 막강한 산헤립 왕이 예루살렘을 포위하고 하느님을 조롱하는 편지를 보냈을 때 성전에 펴 놓고 기도했습니다.",
       "백성들에게 '그들에게는 육체의 팔이 있지만 우리에게는 우리를 도우시는 여호와가 계시다'며 용기를 북돋웠습니다.",
@@ -197,11 +198,11 @@ export const personPart2 = [
     reference: "열왕기하 18:13-19:37; 역대기하 32:1-23"
   },
 
-  // 35장: 므낫세
+  // 35장: 므낫세 (35)
   {
     id: "person_ch35",
     chapter: 35,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025935/univ/art/1102025935_univ_cnt_1_xl.jpg",
     clues: [
       "아버지 히스기야의 의로운 개혁을 뒤엎고 온갖 우상 숭배와 주술을 행하며 무죄한 피를 심히 많이 흘렸습니다.",
       "아시리아 군대에 사로잡혀 갈고리에 꿰이고 족쇄에 묶여 바빌론으로 끌려가는 혹독한 고난을 겪었습니다.",
@@ -212,11 +213,11 @@ export const personPart2 = [
     reference: "역대기하 33:1-20"
   },
 
-  // 36장: 요시야
+  // 36장: 요시야 (36)
   {
     id: "person_ch36",
     chapter: 36,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025936/univ/art/1102025936_univ_cnt_1_xl.jpg",
     clues: [
       "여덟 살에 왕이 되어 젊은 시절부터 우상과 신전 제단들을 부수며 참숭배를 정화했습니다.",
       "성전 수리 중 발견된 모세의 율법책 낭독을 듣고 옷을 찢으며 백성의 오랜 불순종을 깊이 슬퍼했습니다.",
@@ -227,11 +228,11 @@ export const personPart2 = [
     reference: "열왕기하 22:1-23:30; 역대기하 34:1-35:25"
   },
 
-  // 37장: 다니엘
+  // 37장: 다니엘 (37)
   {
     id: "person_ch37",
     chapter: 37,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025937/univ/art/1102025937_univ_cnt_1_xl.jpg",
     clues: [
       "바빌론에 포로로 잡혀갔을 때 왕의 진미와 포도주로 자신을 더럽히지 않겠다고 마음을 정했습니다.",
       "느부갓네살 왕이 꾼 거대한 신상 꿈과 커다란 나무 꿈을 하느님의 영으로 정확히 해석했습니다.",
@@ -242,11 +243,11 @@ export const personPart2 = [
     reference: "다니엘 1:8; 2:1-45; 6:1-28"
   },
 
-  // 38장: 세 히브리인 (하나냐, 미사엘, 아사랴)
+  // 38장: 세 히브리인 (38)
   {
     id: "person_ch38",
     chapter: 38,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025938/univ/art/1102025938_univ_cnt_1_xl.jpg",
     clues: [
       "바빌론식 이름으로 사드락, 메삭, 아벳느고로 불렸던 충실한 세 유대인 청년들이었습니다.",
       "두라 평야에 세워진 거대한 금 신상에 모든 사람이 절할 때 끝까지 몸을 굽히지 않았습니다.",
@@ -257,11 +258,11 @@ export const personPart2 = [
     reference: "다니엘 3:1-30"
   },
 
-  // 39장: 에스더
+  // 39장: 에스더 (39)
   {
     id: "person_ch39",
     chapter: 39,
-    image: "https://assets.jw.org/assets/m/ia/univ/ia_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025939/univ/art/1102025939_univ_cnt_1_xl.jpg",
     clues: [
       "사촌 모르드개의 가르침을 받고 자라 페르시아의 아하수에로 왕의 왕비가 된 유대인 여인이었습니다.",
       "악한 하만이 유대인을 몰살하려 하자 '죽어야 한다면 죽겠습니다'라며 부르지도 않은 왕 앞에 나아갔습니다.",
@@ -272,11 +273,11 @@ export const personPart2 = [
     reference: "에스더 2:5-20; 4:11-16; 7:1-10"
   },
 
-  // 40장: 느헤미야
+  // 40장: 느헤미야 (40)
   {
     id: "person_ch40",
     chapter: 40,
-    image: "https://assets.jw.org/assets/m/wcg/univ/wcg_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102025940/univ/art/1102025940_univ_cnt_1_xl.jpg",
     clues: [
       "페르시아 아닥사스다 왕의 술잔 올리는 시종장이라는 높은 지위에 있었으나 허물어진 예루살렘 성벽 소식에 눈물을 흘렸습니다.",
       "왕의 허락을 받아 유다 총독으로 부임하여 대적들의 조롱과 암살 위협 속에서도 성벽 공사를 지휘했습니다.",
