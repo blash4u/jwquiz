@@ -48,6 +48,7 @@ const hubLivesBadge = document.getElementById('hub-lives-badge');
 const modeQuizBtn = document.getElementById('mode-quiz-btn');
 const modeWalkBtn = document.getElementById('mode-walk-btn');
 const modePersonBtn = document.getElementById('mode-person-btn');
+const hubHelpBtn = document.getElementById('hub-help-btn'); // 🌟 물음표 버튼
 
 // 퀴즈 요소 (모드 1)
 const playerDisplay = document.getElementById('player-display');
@@ -119,6 +120,10 @@ const adminUserTbody = document.getElementById('admin-user-tbody');
 const adminSearchInput = document.getElementById('admin-search-input');
 const closeAdminBtn = document.getElementById('close-admin-btn');
 
+// 🌟 도움말 모달 요소
+const helpModal = document.getElementById('help-modal');
+const closeHelpBtn = document.getElementById('close-help-btn');
+
 // 전역 게임 상태 변수
 let currentUser = "";
 let quizDataList = [];
@@ -159,10 +164,10 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
-// 🌟 [완전 익명화 헬퍼] 본인 이름 외에는 전체를 무조건 '***'로 마스킹
+// 완전 익명화 헬퍼 (본인은 실명, 타인은 일괄 '***')
 function maskName(name, isMe) {
-    if (isMe) return name; // 본인인 경우 실명 유지
-    return "***"; // 타인은 글자 수와 상관없이 전체를 '***'로 일괄 마스킹
+    if (isMe) return name;
+    return "***";
 }
 
 // 자동 로그인 입력 복원
@@ -171,7 +176,7 @@ const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName && usernameInput) usernameInput.value = savedName;
 if (savedPin && pinInput) pinInput.value = savedPin;
 
-// 🌟 관리자 파라미터 체크 (?admin=true)
+// 관리자 파라미터 체크 (?admin=true)
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('admin') === 'true') {
     if (uploadBtn) uploadBtn.style.display = "block";
@@ -376,6 +381,19 @@ if (hubLogoutBtn) {
         if (pinInput) pinInput.value = "";
         hubScreen.style.display = 'none';
         authScreen.style.display = 'block';
+    });
+}
+
+// 🌟 [핵심 수정] 물음표(도움말) 모달 열기/닫기 이벤트 바인딩
+if (hubHelpBtn) {
+    hubHelpBtn.addEventListener('click', () => {
+        if (helpModal) helpModal.style.display = 'flex';
+    });
+}
+
+if (closeHelpBtn) {
+    closeHelpBtn.addEventListener('click', () => {
+        if (helpModal) helpModal.style.display = 'none';
     });
 }
 
@@ -937,27 +955,27 @@ function loadPersonQuestion() {
     personChoicesContainer.style.display = 'block';
     personChoicesContainer.innerHTML = '';
 
+    // 🌟 대체 이미지(Fallback): 정답 스포일러 방지 디자인
     personImage.onerror = () => {
-    // 🌟 정답 노출 방지: 인물 이름(${currentPerson.correctAnswer})을 제거하고 중립적인 퀴즈 카드로 대체
-    const fallbackSvg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
-        <defs>
-            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#4C1D95"/>
-                <stop offset="50%" stop-color="#6D28D9"/>
-                <stop offset="100%" stop-color="#8B5CF6"/>
-            </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#bgGrad)"/>
-        <circle cx="200" cy="85" r="45" fill="rgba(255,255,255,0.15)"/>
-        <text x="50%" y="100" font-size="44" text-anchor="middle" fill="#FDE047">❓</text>
-        <text x="50%" y="156" font-family="'Malgun Gothic', sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#FFFFFF">이 인물은 누구일까요?</text>
-        <text x="50%" y="182" font-family="'Malgun Gothic', sans-serif" font-size="13" text-anchor="middle" fill="#DDD6FE">아래 단서를 읽고 정답을 맞춰보세요</text>
-    </svg>`.trim();
+        const fallbackSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
+            <defs>
+                <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4C1D95"/>
+                    <stop offset="50%" stop-color="#6D28D9"/>
+                    <stop offset="100%" stop-color="#8B5CF6"/>
+                </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#bgGrad)"/>
+            <circle cx="200" cy="85" r="45" fill="rgba(255,255,255,0.15)"/>
+            <text x="50%" y="100" font-size="44" text-anchor="middle" fill="#FDE047">❓</text>
+            <text x="50%" y="156" font-family="'Malgun Gothic', sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#FFFFFF">이 인물은 누구일까요?</text>
+            <text x="50%" y="182" font-family="'Malgun Gothic', sans-serif" font-size="13" text-anchor="middle" fill="#DDD6FE">아래 단서를 읽고 정답을 맞춰보세요</text>
+        </svg>`.trim();
+        personImage.src = `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
+        personImage.onerror = null;
+    };
 
-    personImage.src = `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
-    personImage.onerror = null; // 무한 루프 방지
-};
     personImage.src = currentPerson.image;
 
     personCluesList.innerHTML = '';
@@ -1075,7 +1093,7 @@ if (closeRewardBtn) {
     });
 }
 
-// 🌟 [순위표 TOP 30 & 완전 익명화(***)]
+// 순위표 TOP 30 & 완전 익명화(***)
 async function showLeaderboard() {
     tabRealtime.classList.add('active');
     tabHall.classList.remove('active');
@@ -1098,13 +1116,10 @@ async function showLeaderboard() {
             const isMe = (currentUser && d.username === currentUser);
             if (isMe) myRank = rank;
 
-            // 상위 30위까지 표시
             if (rank <= 30) {
                 const li = document.createElement('li');
                 li.className = `ranking-item ${isMe ? 'my-rank' : ''}`;
                 const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}위`;
-                
-                // 🌟 완전 익명화: 본인은 실명, 타인은 일괄 '***'
                 const displayName = maskName(d.username, isMe);
 
                 li.innerHTML = `
@@ -1184,10 +1199,8 @@ if (gameoverHomeBtn) {
 }
 
 // -------------------------------------------------------------
-// 🌟 [관리자 전용 기능] 계정 수정/삭제/PIN 재설정 로직
+// [관리자 전용 기능] 계정 수정/삭제/PIN 재설정
 // -------------------------------------------------------------
-
-// 관리자 테이블 렌더링
 function renderAdminTable(users) {
     if (!adminUserTbody) return;
     adminUserTbody.innerHTML = '';
@@ -1214,7 +1227,6 @@ function renderAdminTable(users) {
     });
 }
 
-// 전체 회원 로드
 async function loadAdminUsers() {
     if (!adminUserTbody) return;
     adminUserTbody.innerHTML = `<tr><td colspan="4">회원 목록을 불러오는 중...</td></tr>`;
@@ -1232,7 +1244,6 @@ async function loadAdminUsers() {
     }
 }
 
-// 관리자 모달 열기
 if (adminManageBtn) {
     adminManageBtn.addEventListener('click', () => {
         if (adminModal) adminModal.style.display = 'flex';
@@ -1246,7 +1257,6 @@ if (closeAdminBtn) {
     });
 }
 
-// 검색 필터링
 if (adminSearchInput) {
     adminSearchInput.addEventListener('input', (e) => {
         const kw = e.target.value.trim().toLowerCase();
@@ -1255,7 +1265,7 @@ if (adminSearchInput) {
     });
 }
 
-// 전역 window 바인딩: 회원 정보 수정 (점수/PIN/이름)
+// 전역 window 바인딩: 회원 정보 수정
 window.adminEditUser = async (targetUsername, currentScoreVal, currentPinVal) => {
     const newScoreStr = prompt(`[${targetUsername}] 학습자의 점수를 수정하세요:`, currentScoreVal);
     if (newScoreStr === null) return;
@@ -1291,7 +1301,6 @@ window.adminDeleteUser = async (targetUsername) => {
 
     try {
         await deleteDoc(doc(db, "users", targetUsername));
-        // 명예의 전당 기록도 함께 삭제 확인
         try {
             await deleteDoc(doc(db, "hall_of_fame", targetUsername));
         } catch (_) {}
