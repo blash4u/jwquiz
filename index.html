@@ -21,6 +21,14 @@
         .btn-mini { background-color: #ffffff; color: #EA580C; border: 1.5px solid #F97316; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; border-radius: 15px; cursor: pointer; }
         .btn-mini:hover { background-color: #FFEDD5; }
 
+        .btn-icon {
+            background-color: #FFEDD5; color: #C2410C; border: 1.5px solid #F97316;
+            width: 32px; height: 32px; border-radius: 50%; display: inline-flex;
+            justify-content: center; align-items: center; cursor: pointer; font-size: 1.05rem;
+            font-weight: bold; transition: 0.2s;
+        }
+        .btn-icon:hover { background-color: #F97316; color: #ffffff; transform: scale(1.08); }
+
         .btn-danger { background-color: #EF4444; color: white; border: none; padding: 5px 10px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
         .btn-danger:hover { background-color: #DC2626; }
 
@@ -155,7 +163,7 @@
             justify-content: center; align-items: center; padding: 15px;
         }
         .modal-card {
-            background-color: #ffffff; border-radius: 16px; padding: 24px 18px; max-width: 410px; width: 100%;
+            background-color: #ffffff; border-radius: 16px; padding: 24px 18px; max-width: 420px; width: 100%;
             text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 3px solid #F97316;
             animation: popIn 0.25s ease-out; max-height: 90vh; overflow-y: auto;
         }
@@ -176,11 +184,17 @@
         .ranking-name { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .ranking-score { font-weight: bold; color: #F97316; }
 
-        /* 관리자 테이블 스타일 */
+        /* 관리자 테이블 */
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
         .admin-table th, .admin-table td { border: 1px solid #E5E7EB; padding: 8px 6px; text-align: center; }
         .admin-table th { background: #FFEDD5; color: #431407; }
         .admin-table tr:nth-child(even) { background: #FFF7ED; }
+
+        /* 도움말 가이드 스타일 */
+        .guide-section { text-align: left; margin-bottom: 14px; background: #FFF7ED; border-radius: 10px; padding: 12px; border-left: 4px solid #F97316; }
+        .guide-section h4 { font-size: 0.98rem; color: #C2410C; margin-bottom: 6px; font-weight: bold; }
+        .guide-section p, .guide-section li { font-size: 0.86rem; color: #4B5563; line-height: 1.5; }
+        .guide-section ul { padding-left: 18px; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -207,7 +221,6 @@
         <button id="login-btn" class="btn-primary" style="width: 100%; margin-top: 10px; margin-bottom: 12px;">학습 센터 입장하기</button>
         <button id="view-ranking-btn" class="btn-secondary" style="width: 100%; margin-bottom: 14px;">🏆 순위표 & 명예의 전당</button>
         
-        <!-- 🌟 관리자 전용 제어 버튼 (?admin=true 시 활성화) -->
         <button id="admin-manage-btn" class="btn-primary" style="width: 100%; background-color: #6366F1; font-size: 0.92rem; padding: 11px; margin-bottom: 8px; display: none;">🛠️ 학습자 계정 관리 (관리자)</button>
         <button id="upload-btn" class="btn-primary" style="width: 100%; background-color: #10B981; font-size: 0.92rem; padding: 10px; display: none;">⚙️ 문제 DB 동기화 (관리자)</button>
     </div>
@@ -215,7 +228,10 @@
     <!-- 2. 모드 선택 허브 -->
     <div id="hub-screen" class="container" style="display: none;">
         <div class="score-board">
-            <span class="user-badge" id="hub-player-display">학습자</span>
+            <div class="user-info-area">
+                <span class="user-badge" id="hub-player-display">학습자</span>
+                <button id="hub-help-btn" class="btn-icon" title="게임 방법 및 점수 안내">❓</button>
+            </div>
             <span>💎 <span id="hub-score-text">0</span>점</span>
             <button id="hub-logout-btn" class="btn-mini">이름 변경</button>
         </div>
@@ -347,7 +363,6 @@
             <button id="back-to-hub-from-person" class="btn-mini" style="border: 1px solid #9CA3AF; color: #4B5563;">⌂ 메뉴</button>
         </div>
 
-        <!-- 인물 이미지 및 단서 카드 -->
         <div class="walk-card" style="text-align: center; padding: 14px; border-color: #E9D5FF;">
             <div class="person-image-container">
                 <img id="person-image" src="" alt="성경 인물 삽화" referrerpolicy="no-referrer">
@@ -357,10 +372,8 @@
             <ul id="person-clues-list" style="padding-left: 20px; font-size: 0.88rem; color: #374151; line-height: 1.55; text-align: left;"></ul>
         </div>
 
-        <!-- 4지선다 선택지 컨테이너 -->
         <div id="person-choices-container"></div>
 
-        <!-- 피드백 창 -->
         <div id="person-feedback-container" class="feedback-box" style="border-color: #A855F7; background-color: #FAF5FF;">
             <h3 id="person-feedback-title"></h3>
             <p id="person-feedback-text"></p>
@@ -432,7 +445,7 @@
         </div>
     </div>
 
-    <!-- 🌟 10. 관리자 전용 회원 관리 모달 (?admin=true 시 사용) -->
+    <!-- 10. 관리자 전용 회원 관리 모달 (?admin=true 시 사용) -->
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 460px;">
             <div class="modal-icon">🛠️</div>
@@ -458,6 +471,61 @@
             </div>
 
             <button id="close-admin-btn" class="btn-secondary" style="width: 100%; margin-top: 14px; padding: 10px;">관리실 닫기</button>
+        </div>
+    </div>
+
+    <!-- 🌟 11. [수정 완료] 게임 방법 및 점수 체계 안내 모달 (999점 깜짝선물 스포일러 문구 삭제) -->
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-icon">📖💡</div>
+            <h2 class="modal-title">학습 가이드 & 점수 체계</h2>
+            <p style="font-size: 0.88rem; color: #6B7280; margin-bottom: 15px;">말씀 탐구 센터의 규칙과 목표 안내입니다.</p>
+
+            <div class="guide-section">
+                <h4>🎯 1. 성경 구절 퀴즈 (모드 1)</h4>
+                <ul>
+                    <li>생활 주제별 핵심 구절을 맞추는 5지선다 퀴즈입니다.</li>
+                    <li><strong>첫 시도 정답:</strong> 💎 +5점</li>
+                    <li><strong>두 번째 시도:</strong> 💎 +3점</li>
+                    <li><strong>세 번째 시도(힌트 제공):</strong> 💎 +1점</li>
+                    <li><strong>오답 선택 시:</strong> 💎 -1점 차감</li>
+                    <li>3회 모두 실패 시 해당 문제 0점 및 <strong>라이프(❤️) 1개 차감</strong></li>
+                </ul>
+            </div>
+
+            <div class="guide-section">
+                <h4>📖 2. 진리의 빛 안에서 (모드 2)</h4>
+                <ul>
+                    <li>『날마다 성경을 검토함』 해설 읽기 및 성구 암송 퍼즐입니다.</li>
+                    <li><strong>오늘의 성구 첫 성공:</strong> 💎 +10점 (1일 1회 보너스)</li>
+                    <li><strong>두 번째 성공:</strong> 💎 +8점 / 세 번째 이후: 💎 +5점</li>
+                    <li>완성 후에는 자유 복습 모드로 언제든 다시 맞출 수 있습니다.</li>
+                </ul>
+            </div>
+
+            <div class="guide-section">
+                <h4>👤 3. 성경 인물 맞추기 (모드 3)</h4>
+                <ul>
+                    <li>180개의 성서 삽화와 3가지 특징 단서를 보고 인물을 맞춥니다.</li>
+                    <li><strong>정답 시:</strong> 💎 +5점 획득</li>
+                    <li><strong>오답 선택 시:</strong> 💎 -1점 및 <strong>라이프(❤️) 1개 차감</strong></li>
+                </ul>
+            </div>
+
+            <div class="guide-section" style="border-left-color: #EF4444;">
+                <h4 style="color: #DC2626;">❤️ 4. 라이프 시스템 & 게임 오버</h4>
+                <p>모든 모드는 <strong>5개의 라이프(❤️❤️❤️❤️❤️)</strong>를 공유합니다. 라이프를 모두 소진하면 영적 보물이 <strong>0점으로 초기화</strong>되며 라이프 5개가 새로 충전됩니다.</p>
+            </div>
+
+            <div class="guide-section" style="border-left-color: #10B981;">
+                <h4 style="color: #059669;">👑 5. 명예의 전당 & 순위표</h4>
+                <ul>
+                    <li><strong>1,000점 달성:</strong> 마스터의 칭호와 함께 명예의 전당 영구 헌액 후 0점 리셋 (다회차 완주 도전)</li>
+                    <li>순위표는 상위 30위까지 표시되며, 개인정보 보호를 위해 본인 외에는 모두 익명(***)으로 처리됩니다.</li>
+                </ul>
+            </div>
+
+            <button id="close-help-btn" class="btn-primary" style="width: 100%; margin-top: 6px;">이해했습니다</button>
         </div>
     </div>
 
