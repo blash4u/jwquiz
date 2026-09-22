@@ -9,6 +9,7 @@
         body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .container { text-align: center; padding: 25px 20px; width: 100%; max-width: 480px; }
 
+        /* 공통 버튼 스타일 */
         .btn-primary { background-color: #F97316; color: white; border: none; padding: 14px 28px; font-size: 1.05rem; font-weight: bold; border-radius: 28px; cursor: pointer; transition: 0.25s; }
         .btn-primary:hover:not(:disabled) { background-color: #EA580C; }
         .btn-primary:disabled { background-color: #d1d5db; cursor: not-allowed; }
@@ -19,6 +20,7 @@
         .btn-mini { background-color: #ffffff; color: #EA580C; border: 1.5px solid #F97316; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; border-radius: 15px; cursor: pointer; }
         .btn-mini:hover { background-color: #FFEDD5; }
 
+        /* 로고 및 타이틀 */
         .logo-square {
             width: 90px; height: 90px; background-color: #F97316;
             display: flex; justify-content: center; align-items: center; margin: 0 auto 16px auto;
@@ -29,12 +31,14 @@
         .sub-title { font-size: 1.05rem; color: #431407; margin-bottom: 4px; }
         .main-title { font-size: 1.8rem; margin-bottom: 22px; color: #1F2937; font-weight: bold; }
 
+        /* 입력 그룹 */
         .input-group { margin-bottom: 14px; text-align: left; }
         .input-label { display: block; font-size: 0.92rem; font-weight: bold; color: #431407; margin-bottom: 3px; }
         .input-hint { display: block; font-size: 0.8rem; color: #EA580C; margin-bottom: 5px; }
         .text-input { width: 100%; padding: 13px; border: 1.5px solid #FDBA74; border-radius: 10px; font-size: 1rem; outline: none; background: #fff; }
         .text-input:focus { border-color: #F97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); }
 
+        /* 모드 선택 카드 */
         .mode-card {
             background: #ffffff; border: 2px solid #FED7AA; border-radius: 14px; padding: 18px 16px; margin-bottom: 14px;
             text-align: left; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
@@ -45,6 +49,7 @@
         .mode-title { font-size: 1.15rem; font-weight: bold; color: #1F2937; }
         .mode-desc { font-size: 0.88rem; color: #6B7280; line-height: 1.45; }
 
+        /* 스코어보드 공통 */
         .score-board { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 1.05rem; font-weight: bold; color: #431407; }
         .user-info-area { display: flex; align-items: center; gap: 6px; }
         .user-badge { font-size: 0.85rem; color: #EA580C; background: #FFEDD5; padding: 4px 9px; border-radius: 12px; }
@@ -53,6 +58,7 @@
         #question-text { font-size: 1.2rem; margin-bottom: 18px; font-weight: bold; line-height: 1.5; text-align: left; color: #111827; }
         #category-title { font-size: 0.92rem; color: #F97316; text-align: left; margin-bottom: 6px; font-weight: bold; }
 
+        /* 4지선다 및 5지선다 선택지 버튼 */
         .choice-btn { 
             position: relative; display: block; width: 100%; text-align: left; padding: 13px; margin-bottom: 11px;
             background-color: #ffffff; color: #1F2937; border: 1px solid #d1d5db; border-radius: 8px;
@@ -103,6 +109,16 @@
         .word-tile.placed { background: #EA580C; color: #fff; border-color: #C2410C; }
         .tile-arrow { font-size: 0.75rem; opacity: 0.8; margin-left: 2px; }
 
+        /* 『성경 인물 맞추기』 전용 이미지 뷰포트 스타일 */
+        .person-image-container {
+            width: 100%; height: 210px; background: #FAF5FF; border-radius: 10px;
+            overflow: hidden; margin-bottom: 12px; display: flex; justify-content: center;
+            align-items: center; border: 1.5px solid #D8B4FE; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .person-image-container img {
+            width: 100%; height: 100%; object-fit: contain; background-color: #FAF5FF;
+        }
+
         /* 월 달력 모달 */
         .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .calendar-nav h3 { font-size: 1.2rem; color: #431407; }
@@ -125,7 +141,7 @@
         .cal-day-cell.has-data { font-weight: 900; }
         .cal-day-cell.disabled { opacity: 0.25; cursor: not-allowed; background: transparent; }
 
-        /* 모달 공통 */
+        /* 팝업 모달 공통 */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.65); z-index: 100;
@@ -208,7 +224,7 @@
             <p class="mode-desc">날마다 성경을 검토함 공식 읽기와 단어 조각 맞추기 퍼즐로 오늘의 성구를 마음에 새깁니다.</p>
         </div>
 
-        <!-- 모드 3: 성경 인물 맞추기 신규 추가 -->
+        <!-- 모드 3: 성경 인물 맞추기 -->
         <div class="mode-card" id="mode-person-btn">
             <div class="mode-card-header">
                 <span class="mode-title">👤 성경 인물 맞추기</span>
@@ -315,10 +331,10 @@
             <button id="back-to-hub-from-person" class="btn-mini" style="border: 1px solid #9CA3AF; color: #4B5563;">⌂ 메뉴</button>
         </div>
 
-        <!-- 인물 이미지 및 단서 카드 -->
+        <!-- 인물 이미지 및 단서 카드 (로컬 이미지 액자 프레임 최적화) -->
         <div class="walk-card" style="text-align: center; padding: 14px; border-color: #E9D5FF;">
-            <div style="width: 100%; height: 200px; background: #F3F4F6; border-radius: 10px; overflow: hidden; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; border: 1px solid #E5E7EB;">
-                <img id="person-image" src="" alt="성경 인물 삽화" style="width: 100%; height: 100%; object-fit: cover;">
+            <div class="person-image-container">
+                <img id="person-image" src="" alt="성경 인물 삽화">
             </div>
             
             <h4 style="font-size: 0.95rem; color: #7E22CE; margin-bottom: 8px; text-align: left; font-weight: bold;">💡 인물 단서</h4>
@@ -328,7 +344,7 @@
         <!-- 4지선다 선택지 컨테이너 -->
         <div id="person-choices-container"></div>
 
-        <!-- 인물 피드백 창 -->
+        <!-- 피드백 창 -->
         <div id="person-feedback-container" class="feedback-box" style="border-color: #A855F7; background-color: #FAF5FF;">
             <h3 id="person-feedback-title"></h3>
             <p id="person-feedback-text"></p>
