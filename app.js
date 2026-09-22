@@ -7,7 +7,7 @@ import { firebaseConfig } from "./firebase-config.js";
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
 
-// 인물 데이터 안전 임포트
+// 🌟 인물 데이터 안전 임포트 (파일 로딩 에러 방어)
 let personData = [];
 try {
     const personModule = await import("./data_person.js");
@@ -19,7 +19,7 @@ try {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 명예의 전당 목표 점수 (1,000점)
+// 명예의 전당 목표 점수 (1,000점) 및 깜짝 선물 점수 (999점)
 const HALL_OF_FAME_TARGET_SCORE = 1000;
 const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1; // 999점
 
@@ -48,7 +48,7 @@ const hubLivesBadge = document.getElementById('hub-lives-badge');
 const modeQuizBtn = document.getElementById('mode-quiz-btn');
 const modeWalkBtn = document.getElementById('mode-walk-btn');
 const modePersonBtn = document.getElementById('mode-person-btn');
-const hubHelpBtn = document.getElementById('hub-help-btn'); // 🌟 물음표 버튼
+const hubHelpBtn = document.getElementById('hub-help-btn');
 
 // 퀴즈 요소 (모드 1)
 const playerDisplay = document.getElementById('player-display');
@@ -120,7 +120,7 @@ const adminUserTbody = document.getElementById('admin-user-tbody');
 const adminSearchInput = document.getElementById('admin-search-input');
 const closeAdminBtn = document.getElementById('close-admin-btn');
 
-// 🌟 도움말 모달 요소
+// 도움말 모달 요소
 const helpModal = document.getElementById('help-modal');
 const closeHelpBtn = document.getElementById('close-help-btn');
 
@@ -384,7 +384,7 @@ if (hubLogoutBtn) {
     });
 }
 
-// 🌟 [핵심 수정] 물음표(도움말) 모달 열기/닫기 이벤트 바인딩
+// 물음표(도움말) 모달 열기/닫기
 if (hubHelpBtn) {
     hubHelpBtn.addEventListener('click', () => {
         if (helpModal) helpModal.style.display = 'flex';
@@ -1199,7 +1199,7 @@ if (gameoverHomeBtn) {
 }
 
 // -------------------------------------------------------------
-// [관리자 전용 기능] 계정 수정/삭제/PIN 재설정
+// [관리자 전용 기능] 계정 이름 수정 / 삭제 / PIN 재설정
 // -------------------------------------------------------------
 function renderAdminTable(users) {
     if (!adminUserTbody) return;
@@ -1218,7 +1218,7 @@ function renderAdminTable(users) {
             <td style="font-family:monospace; color:#6B7280;">${u.pin || '없음'}</td>
             <td>
                 <div style="display:flex; gap:4px; justify-content:center;">
-                    <button class="btn-edit" onclick="window.adminEditUser('${u.username}', ${u.score || 0}, '${u.pin || ''}')">수정</button>
+                    <button class="btn-edit" onclick="window.adminEditUser('${u.username}', '${u.pin || ''}')">이름/PIN 수정</button>
                     <button class="btn-danger" onclick="window.adminDeleteUser('${u.username}')">삭제</button>
                 </div>
             </td>
@@ -1265,17 +1265,18 @@ if (adminSearchInput) {
     });
 }
 
-// 전역 window 바인딩: 회원 정보 수정
-window.adminEditUser = async (targetUsername, currentScoreVal, currentPinVal) => {
-    const newScoreStr = prompt(`[${targetUsername}] 학습자의 점수를 수정하세요:`, currentScoreVal);
-    if (newScoreStr === null) return;
-    const newScore = parseInt(newScoreStr, 10);
-    if (isNaN(newScore) || newScore < 0) {
-        alert("올바른 점수(0 이상의 숫자)를 입력해 주세요.");
+// 🌟 학습자 이름 및 PIN 수정 처리 (Firestore 문서 이전 마이그레이션)
+window.adminEditUser = async (targetUsername, currentPinVal) => {
+    const newUsername = prompt(`[${targetUsername}] 학습자의 새로운 이름을 입력하세요:`, targetUsername);
+    if (newUsername === null) return;
+    const trimmedNewName = newUsername.trim();
+
+    if (!trimmedNewName) {
+        alert("이름은 빈 칸일 수 없습니다.");
         return;
     }
 
-    const newPin = prompt(`[${targetUsername}] 학습자의 4자리 PIN 비밀번호를 설정하세요:`, currentPinVal);
+    const newPin = prompt(`[${trimmedNewName}] 학습자의 4자리 PIN 비밀번호를 확인/수정하세요:`, currentPinVal);
     if (newPin === null) return;
     if (!/^\d{4}$/.test(newPin)) {
         alert("PIN 비밀번호는 반드시 숫자 4자리여야 합니다.");
@@ -1283,13 +1284,74 @@ window.adminEditUser = async (targetUsername, currentScoreVal, currentPinVal) =>
     }
 
     try {
-        const userRef = doc(db, "users", targetUsername);
-        await setDoc(userRef, { score: newScore, pin: newPin, updatedAt: new Date() }, { merge: true });
-        alert(`[${targetUsername}] 학습자 정보가 성공적으로 수정되었습니다!`);
+        if (trimmedNewName !== targetUsername) {
+            const newDocRef = doc(db, "users", trimmedNewName);
+            const newDocSnap = await getDoc(newDocRef);
+            if (newDocSnap.exists()) {
+                alert(`이미 존재하는 이름입니다: [${trimmedNewName}]\n다른 이름을 사용해 주세요.`);
+                return;
+            }
+
+            const oldDocRef = doc(db, "users", targetUsername);
+            const oldDocSnap = await getDoc(oldDocRef);
+            
+            if (!oldDocSnap.exists()) {
+                alert("기존 사용자 정보를 찾을 수 없습니다.");
+                return;
+            }
+
+            const oldData = oldDocSnap.data();
+
+            // 새 이름의 문서 생성 및 데이터 복사
+            await setDoc(newDocRef, {
+                ...oldData,
+                username: trimmedNewName,
+                pin: newPin,
+                updatedAt: new Date()
+            });
+
+            // 이전 이름의 문서 삭제
+            await deleteDoc(oldDocRef);
+
+            // 명예의 전당 기록도 존재한다면 이전 처리
+            try {
+                const oldHallRef = doc(db, "hall_of_fame", targetUsername);
+                const oldHallSnap = await getDoc(oldHallRef);
+                if (oldHallSnap.exists()) {
+                    const hallData = oldHallSnap.data();
+                    await setDoc(doc(db, "hall_of_fame", trimmedNewName), {
+                        ...hallData,
+                        username: trimmedNewName
+                    });
+                    await deleteDoc(oldHallRef);
+                }
+            } catch (err) {
+                console.warn("명예의 전당 갱신 중 오류 (무시 가능):", err);
+            }
+
+            // 현재 접속 중인 사용자의 이름을 바꾼 경우 로컬스토리지 동기화
+            if (currentUser === targetUsername) {
+                currentUser = trimmedNewName;
+                localStorage.setItem('bibleQuizUser', trimmedNewName);
+                localStorage.setItem('bibleQuizPin', newPin);
+                if (hubPlayerDisplay) hubPlayerDisplay.innerText = currentUser;
+                if (playerDisplay) playerDisplay.innerText = currentUser;
+                if (walkPlayerDisplay) walkPlayerDisplay.innerText = currentUser;
+                if (personPlayerDisplay) personPlayerDisplay.innerText = currentUser;
+            }
+
+            alert(`[${targetUsername}] ➔ [${trimmedNewName}]으로 이름이 성공적으로 변경되었습니다!`);
+        } else {
+            // 이름은 그대로고 PIN만 수정한 경우
+            const userRef = doc(db, "users", targetUsername);
+            await setDoc(userRef, { pin: newPin, updatedAt: new Date() }, { merge: true });
+            alert(`[${targetUsername}] 학습자의 PIN 비밀번호가 수정되었습니다.`);
+        }
+
         loadAdminUsers();
     } catch (e) {
-        console.error(e);
-        alert(`수정 실패: ${e.message}`);
+        console.error("이름 수정 실패:", e);
+        alert(`수정 중 오류가 발생했습니다: ${e.message}`);
     }
 };
 
