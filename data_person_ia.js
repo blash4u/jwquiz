@@ -1,12 +1,12 @@
 // data_person_ia.js
-// 「훌륭한 믿음의 본」(ia_KO) 1장~23장 전체 인물 데이터베이스
+// 「훌륭한 믿음의 본」(ia_KO) 1장~23장 전체 인물 데이터베이스 (정확한 CDN 이미지 매핑 완료)
 
 export const personIA = [
-  // 1장: 아벨 (71)
+  // 1장: 아벨
   {
     id: "ia_ch01",
     chapter: 1,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013271/univ/art/1102013271_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013247/univ/art/1102013247_univ_lsr_xl.jpg",
     clues: [
       "인류 역사상 최초로 여호와를 향한 진정한 믿음을 발전시키고 실천한 사람입니다.",
       "에덴동산 입구를 지키는 그룹 천사들과 창조물을 묵상하며 하느님이 약속하신 '씨'에 대한 기대를 키웠습니다.",
@@ -17,11 +17,11 @@ export const personIA = [
     reference: "창세기 4:1-10; 히브리서 11:4"
   },
 
-  // 2장: 노아 (72)
+  // 2장: 노아
   {
     id: "ia_ch02",
     chapter: 2,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013272/univ/art/1102013272_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013248/univ/art/1102013248_univ_lsr_xl.jpg",
     clues: [
       "네피림의 폭력과 반역이 가득 찬 타락한 세상에서 오직 참하느님과 함께 걸었습니다.",
       "수십 년 동안 사람들의 비웃음과 조롱 속에서도 흔들림 없이 방주를 지으며 세상을 정죄했습니다.",
@@ -32,11 +32,11 @@ export const personIA = [
     reference: "창세기 6:9-22; 7:16; 히브리서 11:7"
   },
 
-  // 3장: 아브람 / 아브라함 (73)
+  // 3장: 아브람 (아브라함)
   {
     id: "ia_ch03",
     chapter: 3,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013273/univ/art/1102013273_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013249/univ/art/1102013249_univ_lsr_xl.jpg",
     clues: [
       "달의 신 난나를 섬기는 우상 숭배의 중심지였던 번영하는 도시 우르를 단호히 뒤로하고 떠났습니다.",
       "기원전 1943년 니산월 14일에 유프라테스 강을 건너 하느님과의 계약을 발효시켰습니다.",
@@ -47,11 +47,11 @@ export const personIA = [
     reference: "창세기 12:1-8; 로마서 4:11; 히브리서 11:8-10"
   },
 
-  // 4장: 룻 - 결단 (74)
+  // 4장: 룻 - 결단
   {
     id: "ia_ch04",
     chapter: 4,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013274/univ/art/1102013274_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013250/univ/art/1102013250_univ_lsr_xl.jpg",
     clues: [
       "남편을 잃은 슬픔 속에서도 고향 모압과 그모스 신을 버리고 시어머니에게 고착하기로 결심했습니다.",
       "'어머니가 가시는 곳에 저도 가고, 어머니의 하느님이 저의 하느님이 되실 것입니다'라는 숭고한 충성 서약을 남겼습니다.",
@@ -62,11 +62,11 @@ export const personIA = [
     reference: "룻기 1:8-19"
   },
 
-  // 5장: 룻 - 탁월한 여자 (75)
+  // 5장: 룻 - 탁월한 여자
   {
     id: "ia_ch05",
     chapter: 5,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013275/univ/art/1102013275_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013251/univ/art/1102013251_univ_lsr_xl.jpg",
     clues: [
       "베들레헴의 보리 수확 밭에서 비천하고 힘든 이삭줍기를 묵묵히 행하며 근면함을 인정받았습니다.",
       "타작마당에서 보아스의 발치에 누워 하느님의 율법에 따른 가문의 대를 잇는 '도로 살 사람'이 되어 주기를 겸손히 청했습니다.",
@@ -77,11 +77,11 @@ export const personIA = [
     reference: "룻기 2:11; 3:11; 4:13-17"
   },
 
-  // 6장: 한나 (76)
+  // 6장: 한나 (🌟 사용자 확인 완료: 1102013252)
   {
     id: "ia_ch06",
     chapter: 6,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013276/univ/art/1102013276_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013252/univ/art/1102013252_univ_lsr_xl.jpg",
     clues: [
       "자녀가 없다는 이유로 남편의 다른 아내 브닌나에게 지속적인 괴롭힘과 조롱을 당했습니다.",
       "실로의 장막에서 소리 없이 입술만 움직이며 눈물로 마음의 모든 비통함을 여호와께 쏟아놓았습니다.",
@@ -92,11 +92,11 @@ export const personIA = [
     reference: "사무엘상 1:4-28; 2:1-10"
   },
 
-  // 7장: 사무엘 - 유년 시절 (77)
+  // 7장: 사무엘 - 유년 시절 (🌟 사용자 확인 완료: 1102013253)
   {
     id: "ia_ch07",
     chapter: 7,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013277/univ/art/1102013277_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013253/univ/art/1102013253_univ_lsr_xl.jpg",
     clues: [
       "어린 소년으로서 아마포 에봇을 두르고 장막 뜰의 문을 열며 충실하게 여호와를 섬겼습니다.",
       "대제사장의 아들들인 홉니와 비느하스의 끔찍한 타락 속에서도 물들지 않고 여호와 곁에서 곧게 자랐습니다.",
@@ -107,11 +107,11 @@ export const personIA = [
     reference: "사무엘상 2:18-26; 3:1-14"
   },
 
-  // 8장: 사무엘 - 시련과 인내 (78)
+  // 8장: 사무엘 - 시련과 인내
   {
     id: "ia_ch08",
     chapter: 8,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013278/univ/art/1102013278_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013254/univ/art/1102013254_univ_lsr_xl.jpg",
     clues: [
       "이스라엘 백성이 우상을 버리고 회개하도록 미스바에 모으고 기도하여 블레셋을 천둥으로 패주시켰습니다.",
       "자신의 아들들이 뇌물을 받고 불공정을 행하는 아픔과, 백성들이 인간 왕을 요구하는 실망을 겪었습니다.",
@@ -122,11 +122,11 @@ export const personIA = [
     reference: "사무엘상 7:3-12; 8:1-22; 16:1-13"
   },
 
-  // 9장: 아비가일 (79)
+  // 9장: 아비가일
   {
     id: "ia_ch09",
     chapter: 9,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013279/univ/art/1102013279_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013255/univ/art/1102013255_univ_lsr_xl.jpg",
     clues: [
       "포악하고 인색한 남편 나발이 다윗을 모욕하여 온 집안 남자들이 몰살당할 위기에 직면했습니다.",
       "신속히 빵과 양고기, 포도주를 챙겨 나아가 다윗 앞에 무릎을 꿇고 지혜롭고 논리적인 말로 설득했습니다.",
@@ -137,11 +137,11 @@ export const personIA = [
     reference: "사무엘상 25:2-35"
   },
 
-  // 10장: 엘리야 - 갈멜산 대결 (80)
+  // 10장: 엘리야 - 갈멜산 대결
   {
     id: "ia_ch10",
     chapter: 10,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013280/univ/art/1102013280_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013256/univ/art/1102013256_univ_lsr_xl.jpg",
     clues: [
       "'언제까지 두 의견 사이에서 절뚝거리겠습니까'라며 갈멜산에 백성을 모아 참숭배를 촉구했습니다.",
       "바알의 예언자 450명에게 온갖 유리한 조건을 먼저 주고 그들의 헛된 신을 통쾌하게 비웃었습니다.",
@@ -152,11 +152,11 @@ export const personIA = [
     reference: "열왕기상 18:21-40"
   },
 
-  // 11장: 엘리야 - 기도의 응답 (81)
+  // 11장: 엘리야 - 기도의 응답
   {
     id: "ia_ch11",
     chapter: 11,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013281/univ/art/1102013281_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013257/univ/art/1102013257_univ_lsr_xl.jpg",
     clues: [
       "갈멜산 꼭대기에서 얼굴을 무릎 사이에 파묻고 가뭄을 끝내는 큰비를 간절히 기도했습니다.",
       "수종을 일곱 번이나 보내어 바다 쪽에서 사람 손바닥만 한 작은 구름 하나가 떠오르는 징후를 놓치지 않았습니다.",
@@ -167,11 +167,11 @@ export const personIA = [
     reference: "열왕기상 18:41-46; 야고보서 5:17, 18"
   },
 
-  // 12장: 엘리야 - 로뎀나무 아래 위로 (82)
+  // 12장: 엘리야 - 로뎀나무 아래 위로
   {
     id: "ia_ch12",
     chapter: 12,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013282/univ/art/1102013282_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013258/univ/art/1102013258_univ_lsr_xl.jpg",
     clues: [
       "악한 이세벨의 사형 협박을 받고 두려움에 사로잡혀 광야로 도망쳐 죽기를 구했습니다.",
       "로뎀나무 아래 쓰러져 잘 때 천사가 나타나 구운 빵과 물을 주어 힘을 북돋아 주었습니다.",
@@ -182,11 +182,11 @@ export const personIA = [
     reference: "열왕기상 19:1-18"
   },
 
-  // 13장: 요나 - 도망과 바다 (83)
+  // 13장: 요나 - 도망과 바다
   {
     id: "ia_ch13",
     chapter: 13,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013283/univ/art/1102013283_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013259/univ/art/1102013259_univ_lsr_xl.jpg",
     clues: [
       "잔인하고 악한 니네베로 가서 심판을 선언하라는 여호와의 명령을 피해 반대 방향인 다시스로 도망쳤습니다.",
       "바다에 거센 폭풍이 일자 배의 밑창에서 깊이 잠들어 있다가 제비뽑기에 뽑혔습니다.",
@@ -197,26 +197,26 @@ export const personIA = [
     reference: "요나 1:1-17"
   },
 
-  // 14장: 요나 - 회개와 자비 (84)
+  // 14장: 요나 - 회개와 자비
   {
     id: "ia_ch14",
     chapter: 14,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013284/univ/art/1102013284_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013260/univ/art/1102013260_univ_lsr_xl.jpg",
     clues: [
       "거대한 물고기 뱃속에서 3일 밤낮을 머물며 서원을 갚겠다고 감사 기도를 드린 뒤 살아 나왔습니다.",
       "니네베로 들어가 40일 후에 도시가 무너질 것을 외쳤고, 왕과 백성 전체가 굵은 베옷을 입고 회개하게 만들었습니다.",
-      "햇볕을 가려 주던 아주까리(박넌출) 나무가 마르자 성을 냈으나, 생명을 아끼시는 하느님의 자비를 교훈으로 배웠습니다."
+      "햇볕을 가려 주던 아주까리 나무가 마르자 성을 냈으나, 생명을 아끼시는 하느님의 자비를 교훈으로 배웠습니다."
     ],
     correctAnswer: "요나",
     distractors: ["엘리사", "다니엘", "나훔"],
     reference: "요나 2:1-4:11"
   },
 
-  // 15장: 에스더 - 궁중의 결단 (85)
+  // 15장: 에스더 - 궁중의 결단
   {
     id: "ia_ch15",
     chapter: 15,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013285/univ/art/1102013285_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013261/univ/art/1102013261_univ_lsr_xl.jpg",
     clues: [
       "페르시아 수산 궁에서 외모와 정숙한 품성으로 아하수에로 왕의 총애를 받아 왕비로 간택되었습니다.",
       "하만의 간계로 전 유대인이 멸절될 위기에 처했을 때 사촌 모르드개로부터 '이때를 위함이 아닌지 누가 아느냐'는 도전을 받았습니다.",
@@ -227,11 +227,11 @@ export const personIA = [
     reference: "에스더 2:15-17; 4:11-16"
   },
 
-  // 16장: 에스더 - 승리와 구원 (86)
+  // 16장: 에스더 - 승리와 구원
   {
     id: "ia_ch16",
     chapter: 16,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013286/univ/art/1102013286_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013262/univ/art/1102013262_univ_lsr_xl.jpg",
     clues: [
       "왕이 내민 금홀을 만져 목숨을 건진 뒤 조급히 본론을 꺼내지 않고 지혜롭게 두 차례의 잔치를 베풀었습니다.",
       "두 번째 잔치에서 왕에게 '나와 내 민족이 팔려 멸절당하게 되었습니다'라며 악한 하만의 음모를 폭로했습니다.",
@@ -242,11 +242,11 @@ export const personIA = [
     reference: "에스더 5:1-8; 7:1-10; 8:3-14"
   },
 
-  // 17장: 마리아 - 수태고지 (87)
+  // 17장: 마리아 - 수태고지
   {
     id: "ia_ch17",
     chapter: 17,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013287/univ/art/1102013287_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013263/univ/art/1102013263_univ_lsr_xl.jpg",
     clues: [
       "나사렛에서 천사 가브리엘로부터 성령으로 가장 높으신 분의 아들을 낳게 될 것이라는 은혜로운 소식을 들었습니다.",
       "처녀의 임신으로 인한 비난과 죽음의 공포를 무릅쓰고 '보십시오! 여호와의 여종입니다'라며 겸손히 받아들였습니다.",
@@ -257,11 +257,11 @@ export const personIA = [
     reference: "누가복음 1:26-55"
   },
 
-  // 18장: 마리아 - 어머니의 믿음 (88)
+  // 18장: 마리아 - 어머니의 믿음
   {
     id: "ia_ch18",
     chapter: 18,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013288/univ/art/1102013288_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013264/univ/art/1102013264_univ_lsr_xl.jpg",
     clues: [
       "베들레헴의 마구간 구유에 갓난아기 예수를 뉘었고, 목자들이 전해 준 천사들의 말을 마음에 깊이 간직했습니다.",
       "성전에서 시므온으로부터 '당신의 영혼이 긴 칼에 찔린 듯할 것'이라는 슬픈 예언을 들었습니다.",
@@ -272,11 +272,11 @@ export const personIA = [
     reference: "누가복음 2:7, 19, 34, 51"
   },
 
-  // 19장: 요셉 (예수의 양부) (89)
+  // 19장: 요셉 (예수의 양부)
   {
     id: "ia_ch19",
     chapter: 19,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013289/univ/art/1102013289_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013265/univ/art/1102013265_univ_lsr_xl.jpg",
     clues: [
       "정혼녀 마리아를 부끄럽게 하지 않으려 조용히 파혼하려 했으나, 꿈에 나타난 천사의 지시에 즉시 순종했습니다.",
       "헤롯의 살해 위협 속에서 밤중에 일어나 갓난아기와 아내를 데리고 이집트로 피신하여 보호했습니다.",
@@ -287,11 +287,11 @@ export const personIA = [
     reference: "마태복음 1:18-25; 2:13-23"
   },
 
-  // 20장: 마르다 (90)
+  // 20장: 마르다
   {
     id: "ia_ch20",
     chapter: 20,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013290/univ/art/1102013290_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013266/univ/art/1102013266_univ_lsr_xl.jpg",
     clues: [
       "베다니에 있는 집에서 예수와 제자들을 극진히 대접하느라 분주하여 주님께 부드러운 교정을 받았습니다.",
       "오라비 나사로가 죽었을 때 슬픔 중에도 '마지막 날 부활 때에 다시 살아날 줄 압니다'라며 부활을 굳게 믿었습니다.",
@@ -302,11 +302,11 @@ export const personIA = [
     reference: "누가복음 10:38-42; 요한복음 11:17-27"
   },
 
-  // 21장: 베드로 - 물 위를 걷다 (91)
+  // 21장: 베드로 - 물 위를 걷다
   {
     id: "ia_ch21",
     chapter: 21,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013291/univ/art/1102013291_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013267/univ/art/1102013267_univ_lsr_xl.jpg",
     clues: [
       "갈릴리 바다의 폭풍 속에서 물 위를 걸어오시는 주님을 보고 '저에게 오라고 명하십시오'라며 배에서 내렸습니다.",
       "바람을 보고 두려워 가라앉기 시작했을 때 '주여, 저를 구원해 주십시오!'라고 외쳤습니다.",
@@ -317,11 +317,11 @@ export const personIA = [
     reference: "마태복음 14:24-33"
   },
 
-  // 22장: 베드로 - 충성과 고백 (92)
+  // 22장: 베드로 - 충성과 고백
   {
     id: "ia_ch22",
     chapter: 22,
-    image: "https://cms-imgp.jw-cdn.org/img/p/1102013292/univ/art/1102013292_univ_lsr_xl.jpg",
+    image: "https://cms-imgp.jw-cdn.org/img/p/1102013268/univ/art/1102013268_univ_lsr_xl.jpg",
     clues: [
       "생명의 빵에 관한 말씀에 걸려 많은 제자가 떠나갈 때 '영원한 생명의 말씀이 주께 있는데 우리가 누구에게 가겠습니까'라고 답했습니다.",
       "카이사레아 빌립보에서 '선생님은 살아 계신 하느님의 아들 그리스도이십니다'라는 정확한 신앙 고백을 했습니다.",
@@ -332,7 +332,7 @@ export const personIA = [
     reference: "마태복음 16:13-23; 요한복음 6:66-69"
   },
 
-  // 23장: 베드로 - 회복과 용서 (69)
+  // 23장: 베드로 - 회복과 용서 (🌟 사용자 확인 완료: 1102013269)
   {
     id: "ia_ch23",
     chapter: 23,
