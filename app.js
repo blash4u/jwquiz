@@ -7,7 +7,7 @@ import { firebaseConfig } from "./firebase-config.js";
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
 
-// 🌟 인물 데이터 안전 임포트 (파일 로딩 에러 방어)
+// 인물 데이터 안전 임포트 (파일 로딩 에러 방어)
 let personData = [];
 try {
     const personModule = await import("./data_person.js");
@@ -19,8 +19,9 @@ try {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const HALL_OF_FAME_TARGET_SCORE = 10000;
-const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1;
+// 🌟 [점수 현실화] 명예의 전당 기준을 1,000점으로 조정 (원하는 값으로 변경 가능)
+const HALL_OF_FAME_TARGET_SCORE = 1000;
+const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1; // 999점
 
 // 화면 컨테이너
 const authScreen = document.getElementById('auth-screen');
@@ -148,6 +149,20 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
+// 🌟 [익명화 헬퍼] 본인 외 타인의 실명을 안전하게 마스킹 처리하는 함수
+function maskName(name, isMe) {
+    if (isMe) return name; // 본인은 실명 그대로 반환
+    if (!name) return "익명";
+    const str = String(name).trim();
+    if (str.length <= 1) return str;
+    if (str.length === 2) {
+        return str[0] + "*"; // 예: "김철" -> "김*"
+    }
+    // 3글자 이상: 첫 글자와 마지막 글자만 남기고 가운데 마스킹 (예: "홍길동" -> "홍*동")
+    const midMask = "*".repeat(str.length - 2);
+    return str[0] + midMask + str[str.length - 1];
+}
+
 // 자동 로그인 입력 복원
 const savedName = localStorage.getItem('bibleQuizUser');
 const savedPin = localStorage.getItem('bibleQuizPin');
@@ -255,7 +270,7 @@ async function saveToHallOfFame() {
 }
 
 // -------------------------------------------------------------
-// [인증 및 허브 제어] - 로그인 로직 무결점 강화
+// [인증 및 허브 제어]
 // -------------------------------------------------------------
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
@@ -919,7 +934,6 @@ function loadPersonQuestion() {
     personChoicesContainer.style.display = 'block';
     personChoicesContainer.innerHTML = '';
 
-    // 이미지 로드 에러 방어
     personImage.onerror = () => {
         const fallbackSvg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
@@ -1003,14 +1017,14 @@ if (personNextBtn) {
 async function checkRewardMilestones() {
     if (currentScore >= SURPRISE_GIFT_SCORE && !hasReceivedSurpriseGift) {
         hasReceivedSurpriseGift = true;
-        showRewardModal("🎁✨", "기적의 깜짝 선물!", `경이롭습니다! 영적 보물 <strong>${currentScore.toLocaleString()}점</strong>에 도달하셨습니다!<br>명예의 전당(1만 점)까지 단 1보 남았습니다.`, "[ 9,999점 전설의 깜짝 선물권 ]", false);
+        showRewardModal("🎁✨", "기적의 깜짝 선물!", `경이롭습니다! 영적 보물 <strong>${currentScore.toLocaleString()}점</strong>에 도달하셨습니다!<br>명예의 전당(${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점)까지 단 1보 남았습니다.`, `[ ${SURPRISE_GIFT_SCORE}점 전설의 깜짝 선물권 ]`, false);
         return;
     }
 
     if (currentScore >= HALL_OF_FAME_TARGET_SCORE) {
         resetPendingAfterReward = true;
         await saveToHallOfFame();
-        showRewardModal("👑🏛️", "명예의 전당 영구 헌액!", `대기록 정복! 보물 <strong>10,000점</strong>을 달성하셨습니다!<br>회원님의 이름이 명예의 전당에 영구 기록되었습니다.`, "[ 10,000점 마스터 헌액패 ]", true);
+        showRewardModal("👑🏛️", "명예의 전당 영구 헌액!", `대기록 정복! 보물 <strong>${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점</strong>을 달성하셨습니다!<br>회원님의 이름이 명예의 전당에 영구 기록되었습니다.`, `[ ${HALL_OF_FAME_TARGET_SCORE}점 마스터 헌액패 ]`, true);
     }
 }
 
@@ -1037,6 +1051,7 @@ if (closeRewardBtn) {
     });
 }
 
+// 🌟 [순위표 개편] 상위 30위까지 표시 + 본인 외 익명화(마스킹) 처리
 async function showLeaderboard() {
     tabRealtime.classList.add('active');
     tabHall.classList.remove('active');
@@ -1059,47 +1074,68 @@ async function showLeaderboard() {
             const isMe = (currentUser && d.username === currentUser);
             if (isMe) myRank = rank;
 
-            if (rank <= 10) {
+            // 🌟 상위 30위까지 표시
+            if (rank <= 30) {
                 const li = document.createElement('li');
                 li.className = `ranking-item ${isMe ? 'my-rank' : ''}`;
                 const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}위`;
-                li.innerHTML = `<span class="ranking-rank">${medal}</span><span class="ranking-name">${d.username} ${isMe ? '(나)' : ''}</span><span class="ranking-score">💎 ${d.score}</span>`;
+                
+                // 🌟 본인 외 익명(마스킹) 처리
+                const displayName = maskName(d.username, isMe);
+
+                li.innerHTML = `
+                    <span class="ranking-rank">${medal}</span>
+                    <span class="ranking-name">${displayName} ${isMe ? '(나)' : ''}</span>
+                    <span class="ranking-score">💎 ${d.score}</span>
+                `;
                 rankingListContainer.appendChild(li);
             }
             rank++;
         });
 
         if (currentUser) {
-            myCurrentRankText.innerText = myRank ? `현재 ${currentUser}님의 순위: ${myRank}위 (💎 ${currentScore}개)` : `현재 점수: 💎 ${currentScore}개`;
+            myCurrentRankText.innerText = myRank 
+                ? `현재 ${currentUser}님의 순위: ${myRank}위 (💎 ${currentScore}개)` 
+                : `현재 점수: 💎 ${currentScore}개 (30위권 밖)`;
         }
     } catch (e) {
+        console.error(e);
         rankingListContainer.innerHTML = `<li class="ranking-item" style="color:red;">순위 호출 실패</li>`;
     }
 }
 
+// 🌟 [명예의 전당] 완주자 명단도 본인 외 익명화(마스킹) 처리
 async function showHallOfFame() {
     tabHall.classList.add('active');
     tabRealtime.classList.remove('active');
     rankingListContainer.innerHTML = `<li class="ranking-item">기록을 불러오는 중...</li>`;
-    myCurrentRankText.innerText = "👑 1만 점 완주 명예의 전당 헌액자들";
+    myCurrentRankText.innerText = `👑 ${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점 완주 명예의 전당 헌액자들`;
 
     try {
         const q = query(collection(db, "hall_of_fame"), orderBy("completions", "desc"));
         const snap = await getDocs(q);
         if (snap.empty) {
-            rankingListContainer.innerHTML = `<li class="ranking-item" style="justify-content:center; color:#6B7280; text-align:center;">아직 1만 점 완주자가 없습니다.<br>첫 번째 주인공이 되어 보세요!</li>`;
+            rankingListContainer.innerHTML = `<li class="ranking-item" style="justify-content:center; color:#6B7280; text-align:center;">아직 ${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점 완주자가 없습니다.<br>첫 번째 주인공이 되어 보세요!</li>`;
             return;
         }
 
         rankingListContainer.innerHTML = '';
         snap.forEach(docSnap => {
             const d = docSnap.data();
+            const isMe = (currentUser && d.username === currentUser);
+            const displayName = maskName(d.username, isMe);
+
             const li = document.createElement('li');
             li.className = 'ranking-item';
-            li.innerHTML = `<span class="ranking-rank">👑</span><span class="ranking-name" style="font-weight:bold;">${d.username}</span><span class="ranking-score" style="color:#EA580C;">${d.completions}회 완주</span>`;
+            li.innerHTML = `
+                <span class="ranking-rank">👑</span>
+                <span class="ranking-name" style="font-weight:bold;">${displayName} ${isMe ? '(나)' : ''}</span>
+                <span class="ranking-score" style="color:#EA580C;">${d.completions}회 완주</span>
+            `;
             rankingListContainer.appendChild(li);
         });
     } catch (e) {
+        console.error(e);
         rankingListContainer.innerHTML = `<li class="ranking-item" style="color:red;">명예의 전당 호출 실패</li>`;
     }
 }
