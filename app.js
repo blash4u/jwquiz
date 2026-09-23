@@ -995,24 +995,24 @@ function loadPersonQuestion() {
     });
 }
 
-// 🌟 [수정 완료] 인물 퀴즈 정답(+3점) 및 오답(라이프 1개 차감 & -2점) 반영
+// 🌟 [수정 완료] 인물 퀴즈 정답(+1점) 및 오답(라이프 1개 차감 & -3점) 반영
 async function handlePersonChoice(selectedAnswer, btn, person) {
     if (selectedAnswer === person.correctAnswer) {
-        // 정답 시 3점 획득
-        currentScore += 3;
+        // 🌟 맞추면 1점 획득으로 변경
+        currentScore += 1;
         updateScoreBoard();
         await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
 
         personChoicesContainer.style.display = 'none';
         personFeedbackContainer.style.display = 'block';
-        personFeedbackTitle.innerText = `🎉 정답입니다! (${person.correctAnswer}, +💎3)`;
+        personFeedbackTitle.innerText = `🎉 정답입니다! (${person.correctAnswer}, +💎1)`;
         personFeedbackTitle.style.color = "#10B981";
         personFeedbackText.innerText = `📖 관련 성구: ${person.reference}\n\n위대한 믿음과 용기의 본을 남긴 인물입니다!`;
     } else {
-        // 오답 시 라이프 1개 차감 및 2점 감점
+        // 🌟 틀리면 라이프 1개 차감 및 -3점 감점 (0점 미만으로 내려가지 않도록 보호)
         totalLives--;
-        currentScore = Math.max(0, currentScore - 2);
+        currentScore = Math.max(0, currentScore - 3);
         updateLivesIcon();
         updateScoreBoard();
         await saveUserData(currentScore, totalLives);
@@ -1025,15 +1025,8 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
             return;
         }
 
-        alert(`오답입니다! (-💎2, 남은 라이프: ${'❤️'.repeat(totalLives)}) 다시 선택해 보세요.`);
+        alert(`오답입니다! (-💎3, 남은 라이프: ${'❤️'.repeat(totalLives)}) 다시 선택해 보세요.`);
     }
-}
-
-if (personNextBtn) {
-    personNextBtn.addEventListener('click', () => {
-        currentPersonIndex++;
-        loadPersonQuestion();
-    });
 }
 
 // -------------------------------------------------------------
