@@ -453,8 +453,8 @@ if (backToHubFromWalk) {
 if (backToHubFromPerson) {
     backToHubFromPerson.addEventListener('click', () => {
         personScreen.style.display = 'none';
-        personFeedbackContainer.style.display = 'none';
-        personChoicesContainer.style.display = 'block';
+        if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
+        if (personChoicesContainer) personChoicesContainer.style.display = 'block';
         hubScreen.style.display = 'block';
         updateScoreBoard();
         updateLivesIcon();
@@ -929,7 +929,7 @@ if (puzzleCheckBtn) {
 }
 
 // -------------------------------------------------------------
-// [모드 3: 『성경 인물 맞추기』 로직]
+// [모드 3: 『성경 인물 맞추기』 로직 - 먹통 버그 완벽 수정]
 // -------------------------------------------------------------
 function loadPersonQuestion() {
     if (personData.length === 0) {
@@ -951,9 +951,14 @@ function loadPersonQuestion() {
     updateLivesIcon();
     updateScoreBoard();
 
-    personFeedbackContainer.style.display = 'none';
-    personChoicesContainer.style.display = 'block';
-    personChoicesContainer.innerHTML = '';
+    // 🌟 [핵심] 피드백 창은 확실히 닫고, 선택지 창은 명시적으로 다시 열기
+    if (personFeedbackContainer) {
+        personFeedbackContainer.style.display = 'none';
+    }
+    if (personChoicesContainer) {
+        personChoicesContainer.style.display = 'block';
+        personChoicesContainer.innerHTML = '';
+    }
 
     // 🌟 대체 이미지(Fallback): 정답 스포일러 방지 디자인
     personImage.onerror = () => {
@@ -995,22 +1000,25 @@ function loadPersonQuestion() {
     });
 }
 
-// 🌟 [수정 완료] 인물 퀴즈 정답(+1점) 및 오답(라이프 1개 차감 & -3점) 반영
+// 🌟 [최신 반영] 인물 퀴즈 맞추면 1점, 틀리면 라이프 1개 차감 및 -3점 감점
 async function handlePersonChoice(selectedAnswer, btn, person) {
     if (selectedAnswer === person.correctAnswer) {
-        // 🌟 맞추면 1점 획득으로 변경
+        // 정답 시 1점 획득
         currentScore += 1;
         updateScoreBoard();
         await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
 
-        personChoicesContainer.style.display = 'none';
-        personFeedbackContainer.style.display = 'block';
-        personFeedbackTitle.innerText = `🎉 정답입니다! (${person.correctAnswer}, +💎1)`;
-        personFeedbackTitle.style.color = "#10B981";
-        personFeedbackText.innerText = `📖 관련 성구: ${person.reference}\n\n위대한 믿음과 용기의 본을 남긴 인물입니다!`;
+        // 선택지 숨기고 피드백 창 노출
+        if (personChoicesContainer) personChoicesContainer.style.display = 'none';
+        if (personFeedbackContainer) {
+            personFeedbackContainer.style.display = 'block';
+            personFeedbackTitle.innerText = `🎉 정답입니다! (${person.correctAnswer}, +💎1)`;
+            personFeedbackTitle.style.color = "#10B981";
+            personFeedbackText.innerText = `📖 관련 성구: ${person.reference}\n\n위대한 믿음과 용기의 본을 남긴 인물입니다!`;
+        }
     } else {
-        // 🌟 틀리면 라이프 1개 차감 및 -3점 감점 (0점 미만으로 내려가지 않도록 보호)
+        // 오답 시 라이프 1개 차감 및 3점 감점 (0점 미만으로 내려가지 않음)
         totalLives--;
         currentScore = Math.max(0, currentScore - 3);
         updateLivesIcon();
@@ -1027,6 +1035,20 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
 
         alert(`오답입니다! (-💎3, 남은 라이프: ${'❤️'.repeat(totalLives)}) 다시 선택해 보세요.`);
     }
+}
+
+// 🌟 [핵심 수정] 다음 인물로 버튼 클릭 시 확실하게 피드백을 닫고 다음 문제 로드
+if (personNextBtn) {
+    personNextBtn.addEventListener('click', () => {
+        currentPersonIndex++;
+        if (personFeedbackContainer) {
+            personFeedbackContainer.style.display = 'none';
+        }
+        if (personChoicesContainer) {
+            personChoicesContainer.style.display = 'block';
+        }
+        loadPersonQuestion();
+    });
 }
 
 // -------------------------------------------------------------
@@ -1188,8 +1210,10 @@ if (gameoverHomeBtn) {
         quizScreen.style.display = 'none';
         walkScreen.style.display = 'none';
         personScreen.style.display = 'none';
-        feedbackContainer.style.display = 'none';
-        choicesContainer.style.display = 'block';
+        if (feedbackContainer) feedbackContainer.style.display = 'none';
+        if (choicesContainer) choicesContainer.style.display = 'block';
+        if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
+        if (personChoicesContainer) personChoicesContainer.style.display = 'block';
         hubScreen.style.display = 'block';
     });
 }
