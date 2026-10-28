@@ -1,4 +1,4 @@
-// app.js - 안정성 복구 및 완전 무결점 버전
+// app.js - 스크립트 실행 중단 차단 및 모달 제어 완전 안정화
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { 
     getFirestore, collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy 
@@ -7,22 +7,12 @@ import { firebaseConfig } from "./firebase-config.js";
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
 
-// 🌟 스크립트 전체 정체를 막기 위한 안전한 백그라운드 인물 데이터 로딩
-let personData = [];
-import("./data_person.js")
-    .then(module => {
-        personData = module.personData || [];
-    })
-    .catch(err => {
-        console.warn("data_person.js 로드 대기 또는 미존재: 인물 퀴즈 진입 시 재시도합니다.", err);
-    });
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // 명예의 전당 목표 점수 (1,000점) 및 깜짝 선물 점수 (999점)
 const HALL_OF_FAME_TARGET_SCORE = 1000;
-const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1; // 999점
+const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1;
 
 // 화면 컨테이너
 const authScreen = document.getElementById('auth-screen');
@@ -151,6 +141,7 @@ let calViewYear = initDate.getFullYear();
 let calViewMonth = initDate.getMonth() + 1;
 
 // 모드 3 상태 변수
+let personData = [];
 let personList = [];
 let currentPersonIndex = 0;
 
@@ -160,7 +151,6 @@ let adminUsersList = [];
 // 요일 명칭 배열
 const KOREAN_WEEKDAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
-// 오늘 날짜 헬퍼 (YYYY-MM-DD)
 function getTodayDateString() {
     const today = new Date();
     const year = today.getFullYear();
@@ -169,14 +159,12 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
-// 실시간 요일 계산 동적 헬퍼
 function getDynamicDateDisplay(year, month, day) {
     const targetDate = new Date(year, month - 1, day);
     const dayName = KOREAN_WEEKDAYS[targetDate.getDay()];
     return `${month}월 ${day}일 ${dayName}`;
 }
 
-// 완전 익명화 헬퍼 (본인은 실명, 타인은 일괄 '***')
 function maskName(name, isMe) {
     if (isMe) return name;
     return "***";
@@ -290,7 +278,7 @@ async function saveToHallOfFame() {
 }
 
 // -------------------------------------------------------------
-// [인증 및 허브 제어 - 안정적인 원본 복구]
+// [인증 및 허브 제어 - 스크립트 잠금 없는 독립적 구동]
 // -------------------------------------------------------------
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
@@ -394,17 +382,19 @@ if (hubLogoutBtn) {
     });
 }
 
-// 물음표(도움말) 모달 열기/닫기
-if (hubHelpBtn) {
-    hubHelpBtn.addEventListener('click', () => {
-        if (helpModal) helpModal.style.display = 'flex';
-    });
+// 모달 제어 함수 (CSS .open 클래스 방식 적용)
+function openModal(modalEl) {
+    if (modalEl) modalEl.classList.add('open');
+}
+function closeModal(modalEl) {
+    if (modalEl) modalEl.classList.remove('open');
 }
 
+if (hubHelpBtn) {
+    hubHelpBtn.addEventListener('click', () => openModal(helpModal));
+}
 if (closeHelpBtn) {
-    closeHelpBtn.addEventListener('click', () => {
-        if (helpModal) helpModal.style.display = 'none';
-    });
+    closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
 }
 
 // 모드 전환
@@ -431,16 +421,15 @@ if (modeWalkBtn) {
 
 if (modePersonBtn) {
     modePersonBtn.addEventListener('click', async () => {
-        // 인물 데이터가 로드되지 않은 상태라면 클릭 시점 안전 로딩
-        if (personList.length === 0) {
-            if (personData.length === 0) {
-                try {
-                    const module = await import("./data_person.js");
-                    personData = module.personData || [];
-                } catch (e) {
-                    console.warn("인물 데이터 로드 실패:", e);
-                }
+        if (personData.length === 0) {
+            try {
+                const module = await import("./data_person.js");
+                personData = module.personData || [];
+            } catch (e) {
+                console.warn("data_person.js 로드 실패:", e);
             }
+        }
+        if (personList.length === 0) {
             personList = shuffleArray([...personData]);
         }
         if (hubScreen) hubScreen.style.display = 'none';
@@ -594,7 +583,6 @@ if (nextBtn) {
     });
 }
 
-// 라이프 소진 시 보물 점수를 절반(50%)으로 보존
 async function triggerGameOver() {
     if (choicesContainer) {
         choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
@@ -618,7 +606,7 @@ async function triggerGameOver() {
             새로운 라이프(❤️❤️❤️❤️❤️)가 충전되었습니다.
         `;
     }
-    if (gameoverModal) gameoverModal.style.display = 'flex';
+    openModal(gameoverModal);
 }
 
 // -------------------------------------------------------------
@@ -629,13 +617,6 @@ function findWalkPlanByDate(month, day) {
     const d = Number(day);
     const found = walkInData.find(item => Number(item.month) === m && Number(item.day) === d);
     return found || null;
-}
-
-function getTodayWalkPlan() {
-    const today = new Date();
-    const m = today.getMonth() + 1;
-    const d = today.getDate();
-    return findWalkPlanByDate(m, d);
 }
 
 function setupWalkMode(customDateStr = null) {
@@ -815,7 +796,7 @@ function renderWalkCalendar(year, month) {
         }
 
         dayCell.onclick = () => {
-            if (walkCalendarModal) walkCalendarModal.style.display = 'none';
+            closeModal(walkCalendarModal);
             setupWalkMode(thisDateStr);
         };
 
@@ -829,7 +810,7 @@ if (calendarTriggerBtn) {
         if (!calViewMonth || isNaN(calViewMonth)) calViewMonth = (new Date()).getMonth() + 1;
 
         renderWalkCalendar(calViewYear, calViewMonth);
-        if (walkCalendarModal) walkCalendarModal.style.display = 'flex';
+        openModal(walkCalendarModal);
     });
 }
 
@@ -856,9 +837,7 @@ if (calNextBtn) {
 }
 
 if (closeCalendarBtn) {
-    closeCalendarBtn.addEventListener('click', () => {
-        if (walkCalendarModal) walkCalendarModal.style.display = 'none';
-    });
+    closeCalendarBtn.addEventListener('click', () => closeModal(walkCalendarModal));
 }
 
 function updatePuzzleBadge() {
@@ -881,7 +860,6 @@ function updatePuzzleBadge() {
     }
 }
 
-// 🌟 정답 완성 시 타일 고정(Fix) 및 재클릭 방지 로직
 function setupWordPuzzle() {
     if (!currentWalkPlan || !puzzleVerseRef || !puzzleDropZone || !puzzleTileZone) return;
     puzzleVerseRef.innerText = `[암기 목표] ${currentWalkPlan.memory_verse.reference_display}`;
@@ -889,7 +867,6 @@ function setupWordPuzzle() {
     puzzleTileZone.innerHTML = '';
     selectedTiles = [];
 
-    // 이미 오늘 문제를 맞췄거나 완료 상태인 경우: 정답 순서대로 조립하고 클릭 잠금(Fix)
     if (isPuzzleSolved) {
         currentWalkPlan.memory_verse.puzzle_tiles.forEach((tileText) => {
             const tile = document.createElement('div');
@@ -1205,12 +1182,12 @@ function showRewardModal(icon, title, desc, badge, willReset) {
     if (rewardModalDesc) rewardModalDesc.innerHTML = desc;
     if (rewardModalBadge) rewardModalBadge.innerText = badge;
     resetPendingAfterReward = willReset;
-    if (rewardModal) rewardModal.style.display = 'flex';
+    openModal(rewardModal);
 }
 
 if (closeRewardBtn) {
     closeRewardBtn.addEventListener('click', () => {
-        if (rewardModal) rewardModal.style.display = 'none';
+        closeModal(rewardModal);
         if (resetPendingAfterReward) {
             currentScore = 0;
             resetPendingAfterReward = false;
@@ -1222,13 +1199,12 @@ if (closeRewardBtn) {
     });
 }
 
-// 순위표 TOP 30 & 완전 익명화(***)
 async function showLeaderboard() {
     if (tabRealtime) tabRealtime.classList.add('active');
     if (tabHall) tabHall.classList.remove('active');
     if (rankingListContainer) rankingListContainer.innerHTML = `<li class="ranking-item">순위를 집계 중입니다...</li>`;
     if (myCurrentRankText) myCurrentRankText.innerText = "";
-    if (rankingModal) rankingModal.style.display = 'flex';
+    openModal(rankingModal);
 
     try {
         const q = query(collection(db, "users"), orderBy("score", "desc"));
@@ -1272,7 +1248,6 @@ async function showLeaderboard() {
     }
 }
 
-// 명예의 전당 (완전 익명화 적용)
 async function showHallOfFame() {
     if (tabHall) tabHall.classList.add('active');
     if (tabRealtime) tabRealtime.classList.remove('active');
@@ -1313,11 +1288,11 @@ if (hubViewRankingBtn) hubViewRankingBtn.addEventListener('click', showLeaderboa
 if (inQuizRankingBtn) inQuizRankingBtn.addEventListener('click', showLeaderboard);
 if (tabRealtime) tabRealtime.addEventListener('click', showLeaderboard);
 if (tabHall) tabHall.addEventListener('click', showHallOfFame);
-if (closeRankingBtn) closeRankingBtn.addEventListener('click', () => { if (rankingModal) rankingModal.style.display = 'none'; });
+if (closeRankingBtn) closeRankingBtn.addEventListener('click', () => closeModal(rankingModal));
 
 if (gameoverHomeBtn) {
     gameoverHomeBtn.addEventListener('click', () => {
-        if (gameoverModal) gameoverModal.style.display = 'none';
+        closeModal(gameoverModal);
         if (quizScreen) quizScreen.style.display = 'none';
         if (walkScreen) walkScreen.style.display = 'none';
         if (personScreen) personScreen.style.display = 'none';
@@ -1377,15 +1352,13 @@ async function loadAdminUsers() {
 
 if (adminManageBtn) {
     adminManageBtn.addEventListener('click', () => {
-        if (adminModal) adminModal.style.display = 'flex';
+        openModal(adminModal);
         loadAdminUsers();
     });
 }
 
 if (closeAdminBtn) {
-    closeAdminBtn.addEventListener('click', () => {
-        if (adminModal) adminModal.style.display = 'none';
-    });
+    closeAdminBtn.addEventListener('click', () => closeModal(adminModal));
 }
 
 if (adminSearchInput) {
@@ -1396,7 +1369,6 @@ if (adminSearchInput) {
     });
 }
 
-// 학습자 이름 및 PIN 수정 처리
 window.adminEditUser = async (targetUsername, currentPinVal) => {
     const newUsername = prompt(`[${targetUsername}] 학습자의 새로운 이름을 입력하세요:`, targetUsername);
     if (newUsername === null) return;
