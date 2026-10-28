@@ -10,6 +10,12 @@
         body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .container { text-align: center; padding: 25px 20px; width: 100%; max-width: 480px; }
 
+        /* 🌟 로그인 화면이 가림막 뒤로 숨지 않도록 최상단 레이어 보장 */
+        #auth-screen {
+            position: relative;
+            z-index: 10;
+        }
+
         /* 공통 버튼 */
         .btn-primary { background-color: #F97316; color: white; border: none; padding: 14px 28px; font-size: 1.05rem; font-weight: bold; border-radius: 28px; cursor: pointer; transition: 0.25s; }
         .btn-primary:hover:not(:disabled) { background-color: #EA580C; }
@@ -156,11 +162,13 @@
         .cal-day-cell.has-data { font-weight: 900; }
         .cal-day-cell.disabled { opacity: 0.25; cursor: not-allowed; background: transparent; }
 
-        /* 팝업 모달 공통 */
+        /* 🌟 팝업 모달 공통 - 비활성화 시 터치/클릭을 절대 가로막지 않도록 방어 */
         .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.65); z-index: 100;
             justify-content: center; align-items: center; padding: 15px;
+            pointer-events: auto; /* 열렸을 때만 클릭 유효 */
         }
         .modal-card {
             background-color: #ffffff; border-radius: 16px; padding: 24px 18px; max-width: 420px; width: 100%;
@@ -198,7 +206,7 @@
     </style>
 </head>
 <body>
-    <!-- 1. 계정 인증 화면 -->
+    <!-- 1. 계정 인증 화면 (명시적 최상위 레이어) -->
     <div id="auth-screen" class="container">
         <div class="logo-square">
             <span>JW</span>
@@ -381,8 +389,8 @@
         </div>
     </div>
 
-    <!-- 6. 커스텀 월 달력 모달 -->
-    <div id="walk-calendar-modal" class="modal-overlay">
+    <!-- 🌟 6. 커스텀 월 달력 모달 (인라인 style="display: none;" 명시적 차단) -->
+    <div id="walk-calendar-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 360px;">
             <div class="calendar-nav">
                 <button id="cal-prev-btn" class="cal-nav-btn">&lt; 이전달</button>
@@ -398,8 +406,8 @@
         </div>
     </div>
 
-    <!-- 7. 보상 모달 -->
-    <div id="reward-modal" class="modal-overlay">
+    <!-- 🌟 7. 보상 모달 (인라인 style="display: none;" 명시적 차단) -->
+    <div id="reward-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <div class="modal-icon" id="reward-modal-icon">🎁✨</div>
             <h2 class="modal-title" id="reward-modal-title">기적의 깜짝 선물!</h2>
@@ -409,8 +417,8 @@
         </div>
     </div>
 
-    <!-- 8. 순위표 & 명예의 전당 모달 -->
-    <div id="ranking-modal" class="modal-overlay">
+    <!-- 🌟 8. 순위표 & 명예의 전당 모달 (인라인 style="display: none;" 명시적 차단) -->
+    <div id="ranking-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <div class="modal-icon">🏆</div>
             <h2 class="modal-title">전당 & 순위표</h2>
@@ -428,8 +436,8 @@
         </div>
     </div>
 
-    <!-- 9. 게임 오버 모달 -->
-    <div id="gameover-modal" class="modal-overlay">
+    <!-- 🌟 9. 게임 오버 모달 (인라인 style="display: none;" 명시적 차단) -->
+    <div id="gameover-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <div class="modal-icon">👏✨</div>
             <h2 class="modal-title">수고하셨습니다!</h2>
@@ -445,8 +453,8 @@
         </div>
     </div>
 
-    <!-- 10. 관리자 모달 -->
-    <div id="admin-modal" class="modal-overlay">
+    <!-- 🌟 10. 관리자 모달 (인라인 style="display: none;" 명시적 차단) -->
+    <div id="admin-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 460px;">
             <div class="modal-icon">🛠️</div>
             <h2 class="modal-title">학습자 계정 관리실</h2>
@@ -474,8 +482,8 @@
         </div>
     </div>
 
-    <!-- 🌟 11. 게임 방법 및 점수 체계 안내 모달 (? 클릭 시에만 팝업으로 오픈) -->
-    <div id="help-modal" class="modal-overlay">
+    <!-- 🌟 11. 게임 방법 및 점수 체계 안내 모달 (인라인 style="display: none;" 명시적 차단) -->
+    <div id="help-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 440px;">
             <div class="modal-icon">📖💡</div>
             <h2 class="modal-title">학습 가이드 & 점수 체계</h2>
@@ -512,7 +520,6 @@
                 </ul>
             </div>
 
-            <!-- 🌟 물음표 모달 내부에만 정확히 위치하는 4번 항목 -->
             <div class="guide-section" style="border-left-color: #EF4444;">
                 <h4 style="color: #DC2626;">❤️ 4. 라이프 시스템 & 게임 오버</h4>
                 <p>모든 모드는 <strong>5개의 라이프(❤️❤️❤️❤️❤️)</strong>를 공유합니다. 라이프를 모두 소진하면 영적 보물이 <strong>절반으로 줄어들며</strong> 라이프 5개가 새로 충전됩니다.</p>
