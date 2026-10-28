@@ -168,7 +168,7 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
-// 🌟 날짜 객체를 바탕으로 정확한 실시간 요일 텍스트를 반환하는 동적 헬퍼 함수
+// 날짜 객체를 바탕으로 정확한 실시간 요일 텍스트를 반환하는 동적 헬퍼 함수
 function getDynamicDateDisplay(year, month, day) {
     const targetDate = new Date(year, month - 1, day);
     const dayName = KOREAN_WEEKDAYS[targetDate.getDay()];
@@ -579,6 +579,7 @@ if (nextBtn) {
     });
 }
 
+// 🌟 [수정 완료] 라이프 소진 시 보물 점수를 절반(50%)으로 보존하는 게임 오버 로직
 async function triggerGameOver() {
     if (choicesContainer) {
         choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
@@ -588,7 +589,8 @@ async function triggerGameOver() {
     }
     
     const previousScore = currentScore;
-    currentScore = 0;
+    // 🌟 0점이 아닌 기존 점수의 절반(소수점 버림)으로 조정
+    currentScore = Math.floor(currentScore / 2);
     totalLives = 5;
     
     await saveUserData(currentScore, totalLives);
@@ -598,7 +600,7 @@ async function triggerGameOver() {
     if (gameoverRankBox) {
         gameoverRankBox.innerHTML = `
             이전 기록: <strong>💎 ${previousScore}개</strong><br>
-            <span style="color:#EF4444; font-size:0.9rem;">영적 보물이 0개로 초기화되었습니다.</span><br>
+            <span style="color:#EA580C; font-size:0.95rem;">보물 점수가 절반(<strong>💎 ${currentScore}개</strong>)으로 조정되었습니다.</span><br>
             새로운 라이프(❤️❤️❤️❤️❤️)가 충전되었습니다.
         `;
     }
@@ -606,7 +608,7 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 로직 - 실시간 동적 요일 반영]
+// [모드 2: 『진리의 빛 안에서』 로직]
 // -------------------------------------------------------------
 function findWalkPlanByDate(month, day) {
     const m = Number(month);
@@ -647,10 +649,8 @@ function setupWalkMode(customDateStr = null) {
 
     currentWalkPlan = findWalkPlanByDate(targetMonth, targetDay);
 
-    // 🌟 오늘 또는 선택한 날짜의 '실제 요일'을 실시간 캘린더 기준으로 동적 계산
     const realDateDisplay = getDynamicDateDisplay(targetYear, targetMonth, targetDay);
 
-    // 데이터가 없는 날짜일 경우의 안전한 예외 처리
     if (!currentWalkPlan) {
         walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
         walkReadingRange.innerText = "오늘의 성구 준비 중";
@@ -691,7 +691,6 @@ function setupWalkMode(customDateStr = null) {
 
     isPuzzleSolved = isToday && (userLastSolvedDailyDate === todayStr);
 
-    // 🌟 고정 텍스트 대신 실시간 계산된 정확한 요일 출력
     walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
@@ -974,7 +973,7 @@ if (puzzleCheckBtn) {
 }
 
 // -------------------------------------------------------------
-// [모드 3: 『성경 인물 맞추기』 로직 - 먹통 및 점수 완벽 해결]
+// [모드 3: 『성경 인물 맞추기』 로직]
 // -------------------------------------------------------------
 function loadPersonQuestion() {
     if (personData.length === 0) {
@@ -996,7 +995,7 @@ function loadPersonQuestion() {
     updateLivesIcon();
     updateScoreBoard();
 
-    // 🌟 [핵심] 피드백 영역은 확실하게 닫고, 선택지 영역을 확실하게 다시 열기
+    // 🌟 피드백 영역 닫고 선택지 영역 열기
     if (personFeedbackContainer) {
         personFeedbackContainer.style.display = 'none';
     }
@@ -1045,16 +1044,14 @@ function loadPersonQuestion() {
     });
 }
 
-// 🌟 [점수 규칙] 인물 퀴즈 맞추면 1점, 틀리면 라이프 1개 차감 및 -3점 감점
+// 🌟 인물 퀴즈 맞추면 1점, 틀리면 라이프 1개 차감 및 -3점 감점
 async function handlePersonChoice(selectedAnswer, btn, person) {
     if (selectedAnswer === person.correctAnswer) {
-        // 정답 시 1점 획득
         currentScore += 1;
         updateScoreBoard();
         await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
 
-        // 선택지 영역 닫고 피드백 영역 노출
         if (personChoicesContainer) personChoicesContainer.style.display = 'none';
         if (personFeedbackContainer) {
             personFeedbackContainer.style.display = 'block';
@@ -1063,7 +1060,6 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
             personFeedbackText.innerText = `📖 관련 성구: ${person.reference}\n\n위대한 믿음과 용기의 본을 남긴 인물입니다!`;
         }
     } else {
-        // 오답 시 라이프 1개 차감 및 3점 감점 (0점 미만 방어)
         totalLives--;
         currentScore = Math.max(0, currentScore - 3);
         updateLivesIcon();
@@ -1082,7 +1078,7 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
     }
 }
 
-// 🌟 [핵심 해결] [다음 인물로] 버튼 클릭 시 확실하게 피드백 창을 닫고 다음 문제를 로드
+// 🌟 [다음 인물로] 버튼 클릭 시 확실하게 피드백 창을 닫고 다음 문제를 로드
 if (personNextBtn) {
     personNextBtn.addEventListener('click', () => {
         currentPersonIndex++;
