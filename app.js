@@ -168,7 +168,7 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
-// 날짜 객체를 바탕으로 정확한 실시간 요일 텍스트를 반환하는 동적 헬퍼 함수
+// 시스템 달력 기반 실시간 요일 계산 헬퍼
 function getDynamicDateDisplay(year, month, day) {
     const targetDate = new Date(year, month - 1, day);
     const dayName = KOREAN_WEEKDAYS[targetDate.getDay()];
@@ -289,7 +289,7 @@ async function saveToHallOfFame() {
 }
 
 // -------------------------------------------------------------
-// [인증 및 허브 제어]
+// [인증 및 허브 제어 - 로그인 안정성 보강]
 // -------------------------------------------------------------
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
@@ -318,8 +318,6 @@ if (loginBtn) {
                 const userData = userDocSnap.data();
                 if (userData.pin && userData.pin !== inputPin) {
                     alert("🔒 비밀번호가 일치하지 않습니다!\n본인 계정이 아니면 다른 이름을 입력해 주세요.");
-                    loginBtn.innerText = "학습 센터 입장하기";
-                    loginBtn.disabled = false;
                     pinInput.focus();
                     return;
                 } else if (!userData.pin) {
@@ -369,15 +367,13 @@ if (loginBtn) {
             updateScoreBoard();
             updateLivesIcon();
 
-            loginBtn.innerText = "학습 센터 입장하기";
-            loginBtn.disabled = false;
-
             authScreen.style.display = 'none';
             hubScreen.style.display = 'block';
 
         } catch (error) {
             console.error("로그인 에러:", error);
-            alert(`로그인 처리 중 에러가 발생했습니다:\n${error.message}\n네트워크 상태를 확인해 주세요.`);
+            alert(`로그인 처리 중 에러가 발생했습니다:\n${error.message}\n네트워크 상태와 Firebase 보안 규칙을 확인해 주세요.`);
+        } finally {
             loginBtn.innerText = "학습 센터 입장하기";
             loginBtn.disabled = false;
         }
@@ -579,7 +575,7 @@ if (nextBtn) {
     });
 }
 
-// 🌟 [수정 완료] 라이프 소진 시 보물 점수를 절반(50%)으로 보존하는 게임 오버 로직
+// 라이프 소진 시 보물 점수를 절반(50%)으로 보존하는 게임 오버 로직
 async function triggerGameOver() {
     if (choicesContainer) {
         choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
@@ -589,7 +585,6 @@ async function triggerGameOver() {
     }
     
     const previousScore = currentScore;
-    // 🌟 0점이 아닌 기존 점수의 절반(소수점 버림)으로 조정
     currentScore = Math.floor(currentScore / 2);
     totalLives = 5;
     
@@ -649,7 +644,9 @@ function setupWalkMode(customDateStr = null) {
 
     currentWalkPlan = findWalkPlanByDate(targetMonth, targetDay);
 
-    const realDateDisplay = getDynamicDateDisplay(targetYear, targetMonth, targetDay);
+    const realDateDisplay = (currentWalkPlan && currentWalkPlan.date_display) 
+        ? currentWalkPlan.date_display 
+        : getDynamicDateDisplay(targetYear, targetMonth, targetDay);
 
     if (!currentWalkPlan) {
         walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
@@ -787,10 +784,8 @@ function renderWalkCalendar(year, month) {
 
 if (calendarTriggerBtn) {
     calendarTriggerBtn.addEventListener('click', () => {
-        if (!calViewYear || isNaN(calViewYear)) calViewYear = 2026;
+        if (!calViewYear || isNaN(calViewYear)) calViewYear = (new Date()).getFullYear();
         if (!calViewMonth || isNaN(calViewMonth)) calViewMonth = (new Date()).getMonth() + 1;
-        if (calViewMonth < 9) calViewMonth = 9;
-        if (calViewMonth > 12) calViewMonth = 12;
 
         renderWalkCalendar(calViewYear, calViewMonth);
         walkCalendarModal.style.display = 'flex';
@@ -799,23 +794,23 @@ if (calendarTriggerBtn) {
 
 if (calPrevBtn) {
     calPrevBtn.addEventListener('click', () => {
-        if (calViewMonth > 9) {
-            calViewMonth--;
-            renderWalkCalendar(calViewYear, calViewMonth);
-        } else {
-            alert("성구 데이터는 9월부터 제공됩니다. 😊");
+        calViewMonth--;
+        if (calViewMonth < 1) {
+            calViewMonth = 12;
+            calViewYear--;
         }
+        renderWalkCalendar(calViewYear, calViewMonth);
     });
 }
 
 if (calNextBtn) {
     calNextBtn.addEventListener('click', () => {
-        if (calViewMonth < 12) {
-            calViewMonth++;
-            renderWalkCalendar(calViewYear, calViewMonth);
-        } else {
-            alert("성구 데이터는 12월까지 제공됩니다. 😊");
+        calViewMonth++;
+        if (calViewMonth > 12) {
+            calViewMonth = 1;
+            calViewYear++;
         }
+        renderWalkCalendar(calViewYear, calViewMonth);
     });
 }
 
@@ -844,8 +839,7 @@ function updatePuzzleBadge() {
     }
 }
 
-// [app.js] 정답 완성 시 타일 고정(Fix) 및 재클릭 방지 로직 개선
-
+// 🌟 정답 완성 시 타일 고정(Fix) 및 재클릭 방지 로직 개선
 function setupWordPuzzle() {
     puzzleVerseRef.innerText = `[암기 목표] ${currentWalkPlan.memory_verse.reference_display}`;
     puzzleDropZone.innerHTML = '';
@@ -858,7 +852,7 @@ function setupWordPuzzle() {
             const tile = document.createElement('div');
             tile.className = "word-tile placed";
             tile.style.cursor = "default";
-            tile.style.backgroundColor = "#059669"; // 정답 고정 녹색
+            tile.style.backgroundColor = "#059669";
             tile.style.borderColor = "#047857";
             tile.innerText = tileText;
             puzzleDropZone.appendChild(tile);
@@ -936,7 +930,12 @@ function returnTileToBank(tileElement, tileText) {
     }
 }
 
-// 🌟 퍼즐 확인 및 정답 시 조각 고정(Fix)
+if (puzzleResetBtn) {
+    puzzleResetBtn.addEventListener('click', () => {
+        setupWordPuzzle();
+    });
+}
+
 if (puzzleCheckBtn) {
     puzzleCheckBtn.addEventListener('click', async () => {
         const todayStr = getTodayDateString();
@@ -954,19 +953,17 @@ if (puzzleCheckBtn) {
         const isCorrect = isFull && selectedTiles.every((t, i) => t.text === correctTiles[i]);
 
         if (isCorrect) {
-            // 🌟 정답 달성 시 퍼즐 조각 픽스(Fix) 처리
             isPuzzleSolved = true;
             puzzleCheckBtn.disabled = true;
             puzzleResetBtn.disabled = true;
             puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
 
-            // 조립 구역 내의 모든 타일 클릭 이벤트 제거 및 시각적 고정
             selectedTiles.forEach(item => {
                 item.element.onclick = null;
                 item.element.style.cursor = "default";
-                item.element.style.backgroundColor = "#059669"; // 견고한 고정 녹색
+                item.element.style.backgroundColor = "#059669";
                 item.element.style.borderColor = "#047857";
-                item.element.innerText = item.text; // 화살표 제거하고 깔끔한 텍스트로 고정
+                item.element.innerText = item.text;
             });
 
             if (isToday) {
@@ -995,6 +992,7 @@ if (puzzleCheckBtn) {
         }
     });
 }
+
 // -------------------------------------------------------------
 // [모드 3: 『성경 인물 맞추기』 로직]
 // -------------------------------------------------------------
@@ -1018,7 +1016,6 @@ function loadPersonQuestion() {
     updateLivesIcon();
     updateScoreBoard();
 
-    // 🌟 피드백 영역 닫고 선택지 영역 열기
     if (personFeedbackContainer) {
         personFeedbackContainer.style.display = 'none';
     }
@@ -1027,7 +1024,6 @@ function loadPersonQuestion() {
         personChoicesContainer.innerHTML = '';
     }
 
-    // 🌟 대체 이미지(Fallback): 정답 스포일러 방지 디자인
     personImage.onerror = () => {
         const fallbackSvg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
@@ -1067,7 +1063,6 @@ function loadPersonQuestion() {
     });
 }
 
-// 🌟 인물 퀴즈 맞추면 1점, 틀리면 라이프 1개 차감 및 -3점 감점
 async function handlePersonChoice(selectedAnswer, btn, person) {
     if (selectedAnswer === person.correctAnswer) {
         currentScore += 1;
@@ -1101,7 +1096,6 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
     }
 }
 
-// 🌟 [다음 인물로] 버튼 클릭 시 확실하게 피드백 창을 닫고 다음 문제를 로드
 if (personNextBtn) {
     personNextBtn.addEventListener('click', () => {
         currentPersonIndex++;
@@ -1386,7 +1380,6 @@ window.adminEditUser = async (targetUsername, currentPinVal) => {
 
             const oldData = oldDocSnap.data();
 
-            // 새 이름의 문서 생성 및 데이터 복사
             await setDoc(newDocRef, {
                 ...oldData,
                 username: trimmedNewName,
@@ -1394,10 +1387,8 @@ window.adminEditUser = async (targetUsername, currentPinVal) => {
                 updatedAt: new Date()
             });
 
-            // 이전 이름의 문서 삭제
             await deleteDoc(oldDocRef);
 
-            // 명예의 전당 기록도 존재한다면 이전 처리
             try {
                 const oldHallRef = doc(db, "hall_of_fame", targetUsername);
                 const oldHallSnap = await getDoc(oldHallRef);
@@ -1413,7 +1404,6 @@ window.adminEditUser = async (targetUsername, currentPinVal) => {
                 console.warn("명예의 전당 갱신 중 오류 (무시 가능):", err);
             }
 
-            // 현재 접속 중인 사용자의 이름을 바꾼 경우 로컬스토리지 동기화
             if (currentUser === targetUsername) {
                 currentUser = trimmedNewName;
                 localStorage.setItem('bibleQuizUser', trimmedNewName);
@@ -1426,7 +1416,6 @@ window.adminEditUser = async (targetUsername, currentPinVal) => {
 
             alert(`[${targetUsername}] ➔ [${trimmedNewName}]으로 이름이 성공적으로 변경되었습니다!`);
         } else {
-            // 이름은 그대로고 PIN만 수정한 경우
             const userRef = doc(db, "users", targetUsername);
             await setDoc(userRef, { pin: newPin, updatedAt: new Date() }, { merge: true });
             alert(`[${targetUsername}] 학습자의 PIN 비밀번호가 수정되었습니다.`);
@@ -1439,7 +1428,6 @@ window.adminEditUser = async (targetUsername, currentPinVal) => {
     }
 };
 
-// 전역 window 바인딩: 회원 삭제
 window.adminDeleteUser = async (targetUsername) => {
     if (!confirm(`⚠️ 정말로 [${targetUsername}] 학습자 계정을 영구 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
         return;
