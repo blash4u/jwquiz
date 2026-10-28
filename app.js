@@ -145,8 +145,9 @@ let userLastReadDailyDate = "";
 let viewingPlanDateStr = "";      
 
 // 달력 뷰어 현재 연/월
-let calViewYear = 2026;
-let calViewMonth = 9;
+const initDate = new Date();
+let calViewYear = initDate.getFullYear();
+let calViewMonth = initDate.getMonth() + 1;
 
 // 모드 3 상태 변수
 let personList = [];
@@ -155,6 +156,9 @@ let currentPersonIndex = 0;
 // 관리자 데이터 캐시
 let adminUsersList = [];
 
+// 요일 명칭 배열
+const KOREAN_WEEKDAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+
 // 오늘 날짜 헬퍼 (YYYY-MM-DD)
 function getTodayDateString() {
     const today = new Date();
@@ -162,6 +166,13 @@ function getTodayDateString() {
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+// 🌟 날짜 객체를 바탕으로 정확한 실시간 요일 텍스트를 반환하는 동적 헬퍼 함수
+function getDynamicDateDisplay(year, month, day) {
+    const targetDate = new Date(year, month - 1, day);
+    const dayName = KOREAN_WEEKDAYS[targetDate.getDay()];
+    return `${month}월 ${day}일 ${dayName}`;
 }
 
 // 완전 익명화 헬퍼 (본인은 실명, 타인은 일괄 '***')
@@ -426,6 +437,8 @@ if (modePersonBtn) {
         }
         hubScreen.style.display = 'none';
         personScreen.style.display = 'block';
+        if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
+        if (personChoicesContainer) personChoicesContainer.style.display = 'block';
         loadPersonQuestion();
     });
 }
@@ -593,11 +606,13 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 로직]
+// [모드 2: 『진리의 빛 안에서』 로직 - 실시간 동적 요일 반영]
 // -------------------------------------------------------------
 function findWalkPlanByDate(month, day) {
-    const found = walkInData.find(item => item.month === month && item.day === day);
-    return found || walkInData[0];
+    const m = Number(month);
+    const d = Number(day);
+    const found = walkInData.find(item => Number(item.month) === m && Number(item.day) === d);
+    return found || null;
 }
 
 function getTodayWalkPlan() {
@@ -611,18 +626,45 @@ function setupWalkMode(customDateStr = null) {
     const todayStr = getTodayDateString();
     const activeUser = currentUser || localStorage.getItem('bibleQuizUser') || "";
 
+    let targetYear, targetMonth, targetDay;
+
     if (customDateStr) {
         viewingPlanDateStr = customDateStr;
         const [y, m, d] = customDateStr.split('-').map(Number);
-        currentWalkPlan = findWalkPlanByDate(m, d);
-        calViewYear = y;
-        calViewMonth = m;
+        targetYear = y;
+        targetMonth = m;
+        targetDay = d;
     } else {
         viewingPlanDateStr = todayStr;
-        currentWalkPlan = getTodayWalkPlan();
         const today = new Date();
-        calViewYear = today.getFullYear();
-        calViewMonth = today.getMonth() + 1;
+        targetYear = today.getFullYear();
+        targetMonth = today.getMonth() + 1;
+        targetDay = today.getDate();
+    }
+
+    calViewYear = targetYear;
+    calViewMonth = targetMonth;
+
+    currentWalkPlan = findWalkPlanByDate(targetMonth, targetDay);
+
+    // 🌟 오늘 또는 선택한 날짜의 '실제 요일'을 실시간 캘린더 기준으로 동적 계산
+    const realDateDisplay = getDynamicDateDisplay(targetYear, targetMonth, targetDay);
+
+    // 데이터가 없는 날짜일 경우의 안전한 예외 처리
+    if (!currentWalkPlan) {
+        walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
+        walkReadingRange.innerText = "오늘의 성구 준비 중";
+        walkGoalQuestion.innerText = "해당 날짜의 성구 및 퍼즐 데이터가 아직 등록되지 않았습니다. 📅 달력 버튼을 눌러 등록된 날짜를 선택해 보세요.";
+        walkStatusTag.innerText = "데이터 없음";
+        walkStatusTag.style.background = "#E5E7EB";
+        walkStatusTag.style.color = "#4B5563";
+        puzzleVerseRef.innerText = "[안내] 성구 데이터 준비 중";
+        puzzleDropZone.innerHTML = '<span style="font-size: 0.85rem; color: #9CA3AF;">등록된 단어 조각이 없습니다.</span>';
+        puzzleTileZone.innerHTML = '';
+        puzzleCheckBtn.disabled = true;
+        puzzleResetBtn.disabled = true;
+        walkMeditationList.innerHTML = '<li>달력에서 등록된 다른 날짜의 성구를 선택해 학습해 보세요.</li>';
+        return;
     }
 
     const isToday = (viewingPlanDateStr === todayStr);
@@ -649,7 +691,8 @@ function setupWalkMode(customDateStr = null) {
 
     isPuzzleSolved = isToday && (userLastSolvedDailyDate === todayStr);
 
-    walkStreakBadge.innerText = `☀️ ${currentWalkPlan.date_display || "성구 묵상"}`;
+    // 🌟 고정 텍스트 대신 실시간 계산된 정확한 요일 출력
+    walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
     walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
     walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
 
@@ -688,6 +731,7 @@ function setupWalkMode(customDateStr = null) {
         updatePuzzleBadge();
     }
 
+    puzzleResetBtn.disabled = false;
     setupWordPuzzle();
 }
 
@@ -727,7 +771,7 @@ function renderWalkCalendar(year, month) {
             dayCell.classList.add('selected');
         }
 
-        const hasData = walkInData.some(item => item.month === month && item.day === day && year === 2026);
+        const hasData = walkInData.some(item => Number(item.month) === Number(month) && Number(item.day) === Number(day));
         if (hasData) {
             dayCell.classList.add('has-data');
             dayCell.style.color = "#EA580C";
@@ -744,7 +788,8 @@ function renderWalkCalendar(year, month) {
 
 if (calendarTriggerBtn) {
     calendarTriggerBtn.addEventListener('click', () => {
-        if (calViewYear !== 2026) calViewYear = 2026;
+        if (!calViewYear || isNaN(calViewYear)) calViewYear = 2026;
+        if (!calViewMonth || isNaN(calViewMonth)) calViewMonth = (new Date()).getMonth() + 1;
         if (calViewMonth < 9) calViewMonth = 9;
         if (calViewMonth > 12) calViewMonth = 12;
 
@@ -759,7 +804,7 @@ if (calPrevBtn) {
             calViewMonth--;
             renderWalkCalendar(calViewYear, calViewMonth);
         } else {
-            alert("성구 데이터는 2026년 9월부터 제공됩니다. 😊");
+            alert("성구 데이터는 9월부터 제공됩니다. 😊");
         }
     });
 }
@@ -770,7 +815,7 @@ if (calNextBtn) {
             calViewMonth++;
             renderWalkCalendar(calViewYear, calViewMonth);
         } else {
-            alert("성구 데이터는 2026년 12월까지 제공됩니다. 😊");
+            alert("성구 데이터는 12월까지 제공됩니다. 😊");
         }
     });
 }
@@ -918,7 +963,7 @@ if (puzzleCheckBtn) {
 
                 alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 보물: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
             } else {
-                alert(`🎉 완벽합니다! [${currentWalkPlan.date_display}] 성구를 바르게 암송하셨습니다.\n(자유 복습 모드에서는 보물이 추가되지 않습니다. 오늘의 성구도 도전해 보세요!)`);
+                alert(`🎉 완벽합니다! 성구를 바르게 암송하셨습니다.\n(자유 복습 모드에서는 보물이 추가되지 않습니다. 오늘의 성구도 도전해 보세요!)`);
             }
         } else {
             walkPuzzleAttempts++;
@@ -929,7 +974,7 @@ if (puzzleCheckBtn) {
 }
 
 // -------------------------------------------------------------
-// [모드 3: 『성경 인물 맞추기』 로직 - 먹통 버그 완벽 수정]
+// [모드 3: 『성경 인물 맞추기』 로직 - 먹통 및 점수 완벽 해결]
 // -------------------------------------------------------------
 function loadPersonQuestion() {
     if (personData.length === 0) {
@@ -951,7 +996,7 @@ function loadPersonQuestion() {
     updateLivesIcon();
     updateScoreBoard();
 
-    // 🌟 [핵심] 피드백 창은 확실히 닫고, 선택지 창은 명시적으로 다시 열기
+    // 🌟 [핵심] 피드백 영역은 확실하게 닫고, 선택지 영역을 확실하게 다시 열기
     if (personFeedbackContainer) {
         personFeedbackContainer.style.display = 'none';
     }
@@ -1000,7 +1045,7 @@ function loadPersonQuestion() {
     });
 }
 
-// 🌟 [최신 반영] 인물 퀴즈 맞추면 1점, 틀리면 라이프 1개 차감 및 -3점 감점
+// 🌟 [점수 규칙] 인물 퀴즈 맞추면 1점, 틀리면 라이프 1개 차감 및 -3점 감점
 async function handlePersonChoice(selectedAnswer, btn, person) {
     if (selectedAnswer === person.correctAnswer) {
         // 정답 시 1점 획득
@@ -1009,7 +1054,7 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
         await saveUserData(currentScore, totalLives);
         await checkRewardMilestones();
 
-        // 선택지 숨기고 피드백 창 노출
+        // 선택지 영역 닫고 피드백 영역 노출
         if (personChoicesContainer) personChoicesContainer.style.display = 'none';
         if (personFeedbackContainer) {
             personFeedbackContainer.style.display = 'block';
@@ -1018,7 +1063,7 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
             personFeedbackText.innerText = `📖 관련 성구: ${person.reference}\n\n위대한 믿음과 용기의 본을 남긴 인물입니다!`;
         }
     } else {
-        // 오답 시 라이프 1개 차감 및 3점 감점 (0점 미만으로 내려가지 않음)
+        // 오답 시 라이프 1개 차감 및 3점 감점 (0점 미만 방어)
         totalLives--;
         currentScore = Math.max(0, currentScore - 3);
         updateLivesIcon();
@@ -1037,7 +1082,7 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
     }
 }
 
-// 🌟 [핵심 수정] 다음 인물로 버튼 클릭 시 확실하게 피드백을 닫고 다음 문제 로드
+// 🌟 [핵심 해결] [다음 인물로] 버튼 클릭 시 확실하게 피드백 창을 닫고 다음 문제를 로드
 if (personNextBtn) {
     personNextBtn.addEventListener('click', () => {
         currentPersonIndex++;
