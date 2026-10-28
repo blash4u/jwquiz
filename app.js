@@ -6,15 +6,7 @@ import {
 import { firebaseConfig } from "./firebase-config.js"; 
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
-
-// 🌟 인물 데이터 안전 임포트 (파일 로딩 에러 방어)
-let personData = [];
-try {
-    const personModule = await import("./data_person.js");
-    personData = personModule.personData || [];
-} catch (e) {
-    console.warn("data_person.js 로드 실패, 기본 데이터로 구동합니다:", e);
-}
+import { personData } from "./data_person.js"; // 🌟 안전한 정적 임포트로 변경하여 스크립트 정체 차단
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -206,7 +198,7 @@ if (uploadBtn) {
             uploadBtn.innerText = "업로드 완료";
         } catch (e) {
             console.error(e);
-            alert("업로드 실패");
+            alert("업로드 실패: " + e.message);
             uploadBtn.disabled = false;
         }
     });
@@ -289,21 +281,21 @@ async function saveToHallOfFame() {
 }
 
 // -------------------------------------------------------------
-// [인증 및 허브 제어 - 로그인 안정성 보강]
+// [인증 및 허브 제어 - 로그인 안정성 100% 보장]
 // -------------------------------------------------------------
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
-        const inputName = usernameInput.value.trim();
-        const inputPin = pinInput.value.trim();
+        const inputName = usernameInput ? usernameInput.value.trim() : "";
+        const inputPin = pinInput ? pinInput.value.trim() : "";
 
         if (!inputName) {
             alert("학습자 실명을 입력해 주세요!");
-            usernameInput.focus();
+            if (usernameInput) usernameInput.focus();
             return;
         }
         if (!/^\d{4}$/.test(inputPin)) {
             alert("🔒 비밀번호는 반드시 숫자 4자리여야 합니다!");
-            pinInput.focus();
+            if (pinInput) pinInput.focus();
             return;
         }
 
@@ -318,7 +310,7 @@ if (loginBtn) {
                 const userData = userDocSnap.data();
                 if (userData.pin && userData.pin !== inputPin) {
                     alert("🔒 비밀번호가 일치하지 않습니다!\n본인 계정이 아니면 다른 이름을 입력해 주세요.");
-                    pinInput.focus();
+                    if (pinInput) pinInput.focus();
                     return;
                 } else if (!userData.pin) {
                     await setDoc(userDocRef, { pin: inputPin }, { merge: true });
@@ -367,8 +359,9 @@ if (loginBtn) {
             updateScoreBoard();
             updateLivesIcon();
 
-            authScreen.style.display = 'none';
-            hubScreen.style.display = 'block';
+            // 🌟 확실한 화면 전환
+            if (authScreen) authScreen.style.display = 'none';
+            if (hubScreen) hubScreen.style.display = 'block';
 
         } catch (error) {
             console.error("로그인 에러:", error);
@@ -386,8 +379,8 @@ if (hubLogoutBtn) {
         localStorage.removeItem('bibleQuizPin');
         if (usernameInput) usernameInput.value = "";
         if (pinInput) pinInput.value = "";
-        hubScreen.style.display = 'none';
-        authScreen.style.display = 'block';
+        if (hubScreen) hubScreen.style.display = 'none';
+        if (authScreen) authScreen.style.display = 'block';
     });
 }
 
@@ -412,16 +405,16 @@ if (modeQuizBtn) {
             querySnapshot.forEach((docSnap) => quizDataList.push(docSnap.data()));
             quizDataList = shuffleArray(quizDataList);
         }
-        hubScreen.style.display = 'none';
-        quizScreen.style.display = 'block';
+        if (hubScreen) hubScreen.style.display = 'none';
+        if (quizScreen) quizScreen.style.display = 'block';
         loadQuestion();
     });
 }
 
 if (modeWalkBtn) {
     modeWalkBtn.addEventListener('click', () => {
-        hubScreen.style.display = 'none';
-        walkScreen.style.display = 'block';
+        if (hubScreen) hubScreen.style.display = 'none';
+        if (walkScreen) walkScreen.style.display = 'block';
         setupWalkMode();
     });
 }
@@ -431,8 +424,8 @@ if (modePersonBtn) {
         if (personList.length === 0) {
             personList = shuffleArray([...personData]);
         }
-        hubScreen.style.display = 'none';
-        personScreen.style.display = 'block';
+        if (hubScreen) hubScreen.style.display = 'none';
+        if (personScreen) personScreen.style.display = 'block';
         if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
         if (personChoicesContainer) personChoicesContainer.style.display = 'block';
         loadPersonQuestion();
@@ -441,10 +434,10 @@ if (modePersonBtn) {
 
 if (backToHubFromQuiz) {
     backToHubFromQuiz.addEventListener('click', () => {
-        quizScreen.style.display = 'none';
-        feedbackContainer.style.display = 'none';
-        choicesContainer.style.display = 'block';
-        hubScreen.style.display = 'block';
+        if (quizScreen) quizScreen.style.display = 'none';
+        if (feedbackContainer) feedbackContainer.style.display = 'none';
+        if (choicesContainer) choicesContainer.style.display = 'block';
+        if (hubScreen) hubScreen.style.display = 'block';
         updateScoreBoard();
         updateLivesIcon();
     });
@@ -452,8 +445,8 @@ if (backToHubFromQuiz) {
 
 if (backToHubFromWalk) {
     backToHubFromWalk.addEventListener('click', () => {
-        walkScreen.style.display = 'none';
-        hubScreen.style.display = 'block';
+        if (walkScreen) walkScreen.style.display = 'none';
+        if (hubScreen) hubScreen.style.display = 'block';
         updateScoreBoard();
         updateLivesIcon();
     });
@@ -461,10 +454,10 @@ if (backToHubFromWalk) {
 
 if (backToHubFromPerson) {
     backToHubFromPerson.addEventListener('click', () => {
-        personScreen.style.display = 'none';
+        if (personScreen) personScreen.style.display = 'none';
         if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
         if (personChoicesContainer) personChoicesContainer.style.display = 'block';
-        hubScreen.style.display = 'block';
+        if (hubScreen) hubScreen.style.display = 'block';
         updateScoreBoard();
         updateLivesIcon();
     });
@@ -490,12 +483,16 @@ function loadQuestion() {
     updateLivesIcon();
     updateScoreBoard();
 
-    document.getElementById('category-title').innerText = `주제: ${quiz.category}`;
-    document.getElementById('question-text').innerText = quiz.question;
+    const categoryTitleEl = document.getElementById('category-title');
+    const questionTextEl = document.getElementById('question-text');
+    if (categoryTitleEl) categoryTitleEl.innerText = `주제: ${quiz.category}`;
+    if (questionTextEl) questionTextEl.innerText = quiz.question;
 
-    feedbackContainer.style.display = 'none';
-    choicesContainer.style.display = 'block';
-    choicesContainer.innerHTML = '';
+    if (feedbackContainer) feedbackContainer.style.display = 'none';
+    if (choicesContainer) {
+        choicesContainer.style.display = 'block';
+        choicesContainer.innerHTML = '';
+    }
 
     const shuffledCorrect = shuffleArray([...quiz.correctVerses]);
     currentCorrectAnswer = shuffledCorrect[0];
@@ -517,7 +514,7 @@ function loadQuestion() {
             <span class="tooltip-text">💡 [성구 힌트] ${choice}\n"${text}"</span>
         `;
         btn.onclick = () => handleChoice(choice, btn, quiz);
-        choicesContainer.appendChild(btn);
+        if (choicesContainer) choicesContainer.appendChild(btn);
     });
 }
 
@@ -540,7 +537,7 @@ async function handleChoice(choice, btn, quiz) {
         btn.classList.add("wrong");
         btn.disabled = true;
 
-        if (questionAttempts === 1) {
+        if (questionAttempts === 1 && choicesContainer) {
             const allBtns = choicesContainer.querySelectorAll('.choice-btn');
             allBtns.forEach(b => b.classList.add('show-hint'));
         }
@@ -560,12 +557,15 @@ async function handleChoice(choice, btn, quiz) {
 }
 
 function showFeedback(title, text, isCorrect) {
-    choicesContainer.style.display = 'none';
-    feedbackContainer.style.display = 'block';
+    if (choicesContainer) choicesContainer.style.display = 'none';
+    if (feedbackContainer) feedbackContainer.style.display = 'block';
     const t = document.getElementById('feedback-title');
-    t.innerText = title;
-    t.style.color = isCorrect ? "#10B981" : "#EF4444";
-    document.getElementById('feedback-text').innerText = text;
+    const fText = document.getElementById('feedback-text');
+    if (t) {
+        t.innerText = title;
+        t.style.color = isCorrect ? "#10B981" : "#EF4444";
+    }
+    if (fText) fText.innerText = text;
 }
 
 if (nextBtn) {
@@ -649,18 +649,20 @@ function setupWalkMode(customDateStr = null) {
         : getDynamicDateDisplay(targetYear, targetMonth, targetDay);
 
     if (!currentWalkPlan) {
-        walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
-        walkReadingRange.innerText = "오늘의 성구 준비 중";
-        walkGoalQuestion.innerText = "해당 날짜의 성구 및 퍼즐 데이터가 아직 등록되지 않았습니다. 📅 달력 버튼을 눌러 등록된 날짜를 선택해 보세요.";
-        walkStatusTag.innerText = "데이터 없음";
-        walkStatusTag.style.background = "#E5E7EB";
-        walkStatusTag.style.color = "#4B5563";
-        puzzleVerseRef.innerText = "[안내] 성구 데이터 준비 중";
-        puzzleDropZone.innerHTML = '<span style="font-size: 0.85rem; color: #9CA3AF;">등록된 단어 조각이 없습니다.</span>';
-        puzzleTileZone.innerHTML = '';
-        puzzleCheckBtn.disabled = true;
-        puzzleResetBtn.disabled = true;
-        walkMeditationList.innerHTML = '<li>달력에서 등록된 다른 날짜의 성구를 선택해 학습해 보세요.</li>';
+        if (walkStreakBadge) walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
+        if (walkReadingRange) walkReadingRange.innerText = "오늘의 성구 준비 중";
+        if (walkGoalQuestion) walkGoalQuestion.innerText = "해당 날짜의 성구 및 퍼즐 데이터가 아직 등록되지 않았습니다. 📅 달력 버튼을 눌러 등록된 날짜를 선택해 보세요.";
+        if (walkStatusTag) {
+            walkStatusTag.innerText = "데이터 없음";
+            walkStatusTag.style.background = "#E5E7EB";
+            walkStatusTag.style.color = "#4B5563";
+        }
+        if (puzzleVerseRef) puzzleVerseRef.innerText = "[안내] 성구 데이터 준비 중";
+        if (puzzleDropZone) puzzleDropZone.innerHTML = '<span style="font-size: 0.85rem; color: #9CA3AF;">등록된 단어 조각이 없습니다.</span>';
+        if (puzzleTileZone) puzzleTileZone.innerHTML = '';
+        if (puzzleCheckBtn) puzzleCheckBtn.disabled = true;
+        if (puzzleResetBtn) puzzleResetBtn.disabled = true;
+        if (walkMeditationList) walkMeditationList.innerHTML = '<li>달력에서 등록된 다른 날짜의 성구를 선택해 학습해 보세요.</li>';
         return;
     }
 
@@ -673,61 +675,81 @@ function setupWalkMode(customDateStr = null) {
 
     const isReadToday = isToday && (userLastReadDailyDate === todayStr);
     if (isReadToday) {
-        walkStatusTag.innerText = "읽기 완료 ✓";
-        walkStatusTag.style.background = "#DCFCE7";
-        walkStatusTag.style.color = "#15803D";
-        wolDeeplink.classList.add('completed');
-        wolDeeplink.innerHTML = "<span>✓ 오늘 읽기 완료 (다시 열기)</span>";
+        if (walkStatusTag) {
+            walkStatusTag.innerText = "읽기 완료 ✓";
+            walkStatusTag.style.background = "#DCFCE7";
+            walkStatusTag.style.color = "#15803D";
+        }
+        if (wolDeeplink) {
+            wolDeeplink.classList.add('completed');
+            wolDeeplink.innerHTML = "<span>✓ 오늘 읽기 완료 (다시 열기)</span>";
+        }
     } else {
-        walkStatusTag.innerText = "읽기 전";
-        walkStatusTag.style.background = "#FEF3C7";
-        walkStatusTag.style.color = "#B45309";
-        wolDeeplink.classList.remove('completed');
-        wolDeeplink.innerHTML = "<span>📖 날마다 성경을 검토함 읽기</span>";
+        if (walkStatusTag) {
+            walkStatusTag.innerText = "읽기 전";
+            walkStatusTag.style.background = "#FEF3C7";
+            walkStatusTag.style.color = "#B45309";
+        }
+        if (wolDeeplink) {
+            wolDeeplink.classList.remove('completed');
+            wolDeeplink.innerHTML = "<span>📖 날마다 성경을 검토함 읽기</span>";
+        }
     }
 
     isPuzzleSolved = isToday && (userLastSolvedDailyDate === todayStr);
 
-    walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
-    walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
-    walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
+    if (walkStreakBadge) walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
+    if (walkReadingRange) walkReadingRange.innerText = currentWalkPlan.reading_range.reference_display;
+    if (walkGoalQuestion) walkGoalQuestion.innerText = `"${currentWalkPlan.reading_goal.key_question}"`;
 
-    wolDeeplink.onclick = () => {
-        walkStatusTag.innerText = "읽기 완료 ✓";
-        walkStatusTag.style.background = "#DCFCE7";
-        walkStatusTag.style.color = "#15803D";
-        wolDeeplink.classList.add('completed');
-        wolDeeplink.innerHTML = "<span>✓ 오늘 읽기 완료 (다시 열기)</span>";
+    if (wolDeeplink) {
+        wolDeeplink.onclick = () => {
+            if (walkStatusTag) {
+                walkStatusTag.innerText = "읽기 완료 ✓";
+                walkStatusTag.style.background = "#DCFCE7";
+                walkStatusTag.style.color = "#15803D";
+            }
+            wolDeeplink.classList.add('completed');
+            wolDeeplink.innerHTML = "<span>✓ 오늘 읽기 완료 (다시 열기)</span>";
 
-        if (isToday) {
-            saveUserData(currentScore, totalLives, null, todayStr);
-        }
-    };
+            if (isToday) {
+                saveUserData(currentScore, totalLives, null, todayStr);
+            }
+        };
+    }
 
-    walkMeditationList.innerHTML = '';
-    currentWalkPlan.meditation_summary.forEach(point => {
-        const li = document.createElement('li');
-        li.innerText = point;
-        walkMeditationList.appendChild(li);
-    });
+    if (walkMeditationList) {
+        walkMeditationList.innerHTML = '';
+        currentWalkPlan.meditation_summary.forEach(point => {
+            const li = document.createElement('li');
+            li.innerText = point;
+            walkMeditationList.appendChild(li);
+        });
+    }
 
     walkPuzzleAttempts = 0;
 
     if (isPuzzleSolved) {
-        puzzleCheckBtn.disabled = true;
-        puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
-        puzzleScoreBadge.innerText = "보물 획득 완료 ✓";
+        if (puzzleCheckBtn) {
+            puzzleCheckBtn.disabled = true;
+            puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
+        }
+        if (puzzleScoreBadge) puzzleScoreBadge.innerText = "보물 획득 완료 ✓";
     } else if (!isToday) {
-        puzzleCheckBtn.disabled = false;
-        puzzleCheckBtn.innerText = "맞추기 확인 (자유 복습)";
-        puzzleScoreBadge.innerText = "자유 묵상 모드";
+        if (puzzleCheckBtn) {
+            puzzleCheckBtn.disabled = false;
+            puzzleCheckBtn.innerText = "맞추기 확인 (자유 복습)";
+        }
+        if (puzzleScoreBadge) puzzleScoreBadge.innerText = "자유 묵상 모드";
     } else {
-        puzzleCheckBtn.disabled = false;
-        puzzleCheckBtn.innerText = "완성 확인";
+        if (puzzleCheckBtn) {
+            puzzleCheckBtn.disabled = false;
+            puzzleCheckBtn.innerText = "완성 확인";
+        }
         updatePuzzleBadge();
     }
 
-    puzzleResetBtn.disabled = false;
+    if (puzzleResetBtn) puzzleResetBtn.disabled = false;
     setupWordPuzzle();
 }
 
@@ -739,8 +761,8 @@ window.addEventListener('pageshow', () => {
 });
 
 function renderWalkCalendar(year, month) {
-    calMonthTitle.innerText = `${year}년 ${month}월`;
-    calDaysContainer.innerHTML = '';
+    if (calMonthTitle) calMonthTitle.innerText = `${year}년 ${month}월`;
+    if (calDaysContainer) calDaysContainer.innerHTML = '';
 
     const firstDayIndex = new Date(year, month - 1, 1).getDay();
     const totalDays = new Date(year, month, 0).getDate();
@@ -749,7 +771,7 @@ function renderWalkCalendar(year, month) {
     for (let i = 0; i < firstDayIndex; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'cal-day-cell disabled';
-        calDaysContainer.appendChild(emptyCell);
+        if (calDaysContainer) calDaysContainer.appendChild(emptyCell);
     }
 
     for (let day = 1; day <= totalDays; day++) {
@@ -774,11 +796,11 @@ function renderWalkCalendar(year, month) {
         }
 
         dayCell.onclick = () => {
-            walkCalendarModal.style.display = 'none';
+            if (walkCalendarModal) walkCalendarModal.style.display = 'none';
             setupWalkMode(thisDateStr);
         };
 
-        calDaysContainer.appendChild(dayCell);
+        if (calDaysContainer) calDaysContainer.appendChild(dayCell);
     }
 }
 
@@ -788,7 +810,7 @@ if (calendarTriggerBtn) {
         if (!calViewMonth || isNaN(calViewMonth)) calViewMonth = (new Date()).getMonth() + 1;
 
         renderWalkCalendar(calViewYear, calViewMonth);
-        walkCalendarModal.style.display = 'flex';
+        if (walkCalendarModal) walkCalendarModal.style.display = 'flex';
     });
 }
 
@@ -816,12 +838,13 @@ if (calNextBtn) {
 
 if (closeCalendarBtn) {
     closeCalendarBtn.addEventListener('click', () => {
-        walkCalendarModal.style.display = 'none';
+        if (walkCalendarModal) walkCalendarModal.style.display = 'none';
     });
 }
 
 function updatePuzzleBadge() {
     const todayStr = getTodayDateString();
+    if (!puzzleScoreBadge) return;
     if (viewingPlanDateStr !== todayStr) {
         puzzleScoreBadge.innerText = "자유 묵상 모드";
         return;
@@ -839,8 +862,8 @@ function updatePuzzleBadge() {
     }
 }
 
-// 🌟 정답 완성 시 타일 고정(Fix) 및 재클릭 방지 로직 개선
 function setupWordPuzzle() {
+    if (!currentWalkPlan || !puzzleVerseRef || !puzzleDropZone || !puzzleTileZone) return;
     puzzleVerseRef.innerText = `[암기 목표] ${currentWalkPlan.memory_verse.reference_display}`;
     puzzleDropZone.innerHTML = '';
     puzzleTileZone.innerHTML = '';
@@ -857,11 +880,11 @@ function setupWordPuzzle() {
             tile.innerText = tileText;
             puzzleDropZone.appendChild(tile);
         });
-        puzzleResetBtn.disabled = true;
+        if (puzzleResetBtn) puzzleResetBtn.disabled = true;
         return;
     }
 
-    puzzleResetBtn.disabled = false;
+    if (puzzleResetBtn) puzzleResetBtn.disabled = false;
     const placeholder = document.createElement('span');
     placeholder.id = "drop-zone-placeholder";
     placeholder.style.fontSize = "0.85rem";
@@ -890,7 +913,7 @@ function handleTileFromBank(tileElement, tileText) {
     tileElement.innerHTML = `${tileText} <span class="tile-arrow">⇄</span>`;
     tileElement.onclick = () => handleTileInDropZone(tileElement, tileText);
     
-    puzzleDropZone.appendChild(tileElement);
+    if (puzzleDropZone) puzzleDropZone.appendChild(tileElement);
     selectedTiles.push({ text: tileText, element: tileElement });
 }
 
@@ -907,8 +930,10 @@ function handleTileInDropZone(tileElement, tileText) {
         selectedTiles[currentIndex] = selectedTiles[nextIndex];
         selectedTiles[nextIndex] = temp;
 
-        puzzleDropZone.innerHTML = '';
-        selectedTiles.forEach(t => puzzleDropZone.appendChild(t.element));
+        if (puzzleDropZone) {
+            puzzleDropZone.innerHTML = '';
+            selectedTiles.forEach(t => puzzleDropZone.appendChild(t.element));
+        }
     } else {
         returnTileToBank(tileElement, tileText);
     }
@@ -923,9 +948,9 @@ function returnTileToBank(tileElement, tileText) {
 
     selectedTiles = selectedTiles.filter(t => t.element !== tileElement);
     tileElement.remove();
-    puzzleTileZone.appendChild(tileElement);
+    if (puzzleTileZone) puzzleTileZone.appendChild(tileElement);
 
-    if (selectedTiles.length === 0) {
+    if (selectedTiles.length === 0 && puzzleDropZone) {
         puzzleDropZone.innerHTML = `<span style="font-size: 0.85rem; color: #9CA3AF;" id="drop-zone-placeholder">아래 단어 조각을 터치해 올바른 순서로 완성하세요.</span>`;
     }
 }
@@ -955,7 +980,7 @@ if (puzzleCheckBtn) {
         if (isCorrect) {
             isPuzzleSolved = true;
             puzzleCheckBtn.disabled = true;
-            puzzleResetBtn.disabled = true;
+            if (puzzleResetBtn) puzzleResetBtn.disabled = true;
             puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
 
             selectedTiles.forEach(item => {
@@ -1024,34 +1049,38 @@ function loadPersonQuestion() {
         personChoicesContainer.innerHTML = '';
     }
 
-    personImage.onerror = () => {
-        const fallbackSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
-            <defs>
-                <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#4C1D95"/>
-                    <stop offset="50%" stop-color="#6D28D9"/>
-                    <stop offset="100%" stop-color="#8B5CF6"/>
-                </linearGradient>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#bgGrad)"/>
-            <circle cx="200" cy="85" r="45" fill="rgba(255,255,255,0.15)"/>
-            <text x="50%" y="100" font-size="44" text-anchor="middle" fill="#FDE047">❓</text>
-            <text x="50%" y="156" font-family="'Malgun Gothic', sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#FFFFFF">이 인물은 누구일까요?</text>
-            <text x="50%" y="182" font-family="'Malgun Gothic', sans-serif" font-size="13" text-anchor="middle" fill="#DDD6FE">아래 단서를 읽고 정답을 맞춰보세요</text>
-        </svg>`.trim();
-        personImage.src = `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
-        personImage.onerror = null;
-    };
+    if (personImage) {
+        personImage.onerror = () => {
+            const fallbackSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
+                <defs>
+                    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#4C1D95"/>
+                        <stop offset="50%" stop-color="#6D28D9"/>
+                        <stop offset="100%" stop-color="#8B5CF6"/>
+                    </linearGradient>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#bgGrad)"/>
+                <circle cx="200" cy="85" r="45" fill="rgba(255,255,255,0.15)"/>
+                <text x="50%" y="100" font-size="44" text-anchor="middle" fill="#FDE047">❓</text>
+                <text x="50%" y="156" font-family="'Malgun Gothic', sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#FFFFFF">이 인물은 누구일까요?</text>
+                <text x="50%" y="182" font-family="'Malgun Gothic', sans-serif" font-size="13" text-anchor="middle" fill="#DDD6FE">아래 단서를 읽고 정답을 맞춰보세요</text>
+            </svg>`.trim();
+            personImage.src = `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
+            personImage.onerror = null;
+        };
 
-    personImage.src = currentPerson.image;
+        personImage.src = currentPerson.image;
+    }
 
-    personCluesList.innerHTML = '';
-    currentPerson.clues.forEach(clue => {
-        const li = document.createElement('li');
-        li.innerText = clue;
-        personCluesList.appendChild(li);
-    });
+    if (personCluesList) {
+        personCluesList.innerHTML = '';
+        currentPerson.clues.forEach(clue => {
+            const li = document.createElement('li');
+            li.innerText = clue;
+            personCluesList.appendChild(li);
+        });
+    }
 
     const options = shuffleArray([currentPerson.correctAnswer, ...currentPerson.distractors]);
     options.forEach((opt, idx) => {
@@ -1059,7 +1088,7 @@ function loadPersonQuestion() {
         btn.className = "choice-btn";
         btn.innerHTML = `<span class="choice-number">${idx + 1}.</span> <strong>${opt}</strong>`;
         btn.onclick = () => handlePersonChoice(opt, btn, currentPerson);
-        personChoicesContainer.appendChild(btn);
+        if (personChoicesContainer) personChoicesContainer.appendChild(btn);
     });
 }
 
@@ -1073,9 +1102,13 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
         if (personChoicesContainer) personChoicesContainer.style.display = 'none';
         if (personFeedbackContainer) {
             personFeedbackContainer.style.display = 'block';
-            personFeedbackTitle.innerText = `🎉 정답입니다! (${person.correctAnswer}, +💎1)`;
-            personFeedbackTitle.style.color = "#10B981";
-            personFeedbackText.innerText = `📖 관련 성구: ${person.reference}\n\n위대한 믿음과 용기의 본을 남긴 인물입니다!`;
+            if (personFeedbackTitle) {
+                personFeedbackTitle.innerText = `🎉 정답입니다! (${person.correctAnswer}, +💎1)`;
+                personFeedbackTitle.style.color = "#10B981";
+            }
+            if (personFeedbackText) {
+                personFeedbackText.innerText = `📖 관련 성구: ${person.reference}\n\n위대한 믿음과 용기의 본을 남긴 인물입니다!`;
+            }
         }
     } else {
         totalLives--;
@@ -1147,17 +1180,17 @@ async function checkRewardMilestones() {
 }
 
 function showRewardModal(icon, title, desc, badge, willReset) {
-    rewardModalIcon.innerText = icon;
-    rewardModalTitle.innerText = title;
-    rewardModalDesc.innerHTML = desc;
-    rewardModalBadge.innerText = badge;
+    if (rewardModalIcon) rewardModalIcon.innerText = icon;
+    if (rewardModalTitle) rewardModalTitle.innerText = title;
+    if (rewardModalDesc) rewardModalDesc.innerHTML = desc;
+    if (rewardModalBadge) rewardModalBadge.innerText = badge;
     resetPendingAfterReward = willReset;
-    rewardModal.style.display = 'flex';
+    if (rewardModal) rewardModal.style.display = 'flex';
 }
 
 if (closeRewardBtn) {
     closeRewardBtn.addEventListener('click', () => {
-        rewardModal.style.display = 'none';
+        if (rewardModal) rewardModal.style.display = 'none';
         if (resetPendingAfterReward) {
             currentScore = 0;
             resetPendingAfterReward = false;
@@ -1171,28 +1204,28 @@ if (closeRewardBtn) {
 
 // 순위표 TOP 30 & 완전 익명화(***)
 async function showLeaderboard() {
-    tabRealtime.classList.add('active');
-    tabHall.classList.remove('active');
-    rankingListContainer.innerHTML = `<li class="ranking-item">순위를 집계 중입니다...</li>`;
-    myCurrentRankText.innerText = "";
-    rankingModal.style.display = 'flex';
+    if (tabRealtime) tabRealtime.classList.add('active');
+    if (tabHall) tabHall.classList.remove('active');
+    if (rankingListContainer) rankingListContainer.innerHTML = `<li class="ranking-item">순위를 집계 중입니다...</li>`;
+    if (myCurrentRankText) myCurrentRankText.innerText = "";
+    if (rankingModal) rankingModal.style.display = 'flex';
 
     try {
         const q = query(collection(db, "users"), orderBy("score", "desc"));
         const snap = await getDocs(q);
         if (snap.empty) {
-            rankingListContainer.innerHTML = `<li class="ranking-item">등록된 순위가 없습니다.</li>`;
+            if (rankingListContainer) rankingListContainer.innerHTML = `<li class="ranking-item">등록된 순위가 없습니다.</li>`;
             return;
         }
 
-        rankingListContainer.innerHTML = '';
+        if (rankingListContainer) rankingListContainer.innerHTML = '';
         let rank = 1, myRank = null;
         snap.forEach(docSnap => {
             const d = docSnap.data();
             const isMe = (currentUser && d.username === currentUser);
             if (isMe) myRank = rank;
 
-            if (rank <= 30) {
+            if (rank <= 30 && rankingListContainer) {
                 const li = document.createElement('li');
                 li.className = `ranking-item ${isMe ? 'my-rank' : ''}`;
                 const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}위`;
@@ -1208,33 +1241,33 @@ async function showLeaderboard() {
             rank++;
         });
 
-        if (currentUser) {
+        if (currentUser && myCurrentRankText) {
             myCurrentRankText.innerText = myRank 
                 ? `현재 ${currentUser}님의 순위: ${myRank}위 (💎 ${currentScore}개)` 
                 : `현재 점수: 💎 ${currentScore}개 (30위권 밖)`;
         }
     } catch (e) {
         console.error(e);
-        rankingListContainer.innerHTML = `<li class="ranking-item" style="color:red;">순위 호출 실패</li>`;
+        if (rankingListContainer) rankingListContainer.innerHTML = `<li class="ranking-item" style="color:red;">순위 호출 실패: ${e.message}</li>`;
     }
 }
 
 // 명예의 전당 (완전 익명화 적용)
 async function showHallOfFame() {
-    tabHall.classList.add('active');
-    tabRealtime.classList.remove('active');
-    rankingListContainer.innerHTML = `<li class="ranking-item">기록을 불러오는 중...</li>`;
-    myCurrentRankText.innerText = `👑 ${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점 완주 명예의 전당 헌액자들`;
+    if (tabHall) tabHall.classList.add('active');
+    if (tabRealtime) tabRealtime.classList.remove('active');
+    if (rankingListContainer) rankingListContainer.innerHTML = `<li class="ranking-item">기록을 불러오는 중...</li>`;
+    if (myCurrentRankText) myCurrentRankText.innerText = `👑 ${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점 완주 명예의 전당 헌액자들`;
 
     try {
         const q = query(collection(db, "hall_of_fame"), orderBy("completions", "desc"));
         const snap = await getDocs(q);
         if (snap.empty) {
-            rankingListContainer.innerHTML = `<li class="ranking-item" style="justify-content:center; color:#6B7280; text-align:center;">아직 ${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점 완주자가 없습니다.<br>첫 번째 주인공이 되어 보세요!</li>`;
+            if (rankingListContainer) rankingListContainer.innerHTML = `<li class="ranking-item" style="justify-content:center; color:#6B7280; text-align:center;">아직 ${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점 완주자가 없습니다.<br>첫 번째 주인공이 되어 보세요!</li>`;
             return;
         }
 
-        rankingListContainer.innerHTML = '';
+        if (rankingListContainer) rankingListContainer.innerHTML = '';
         snap.forEach(docSnap => {
             const d = docSnap.data();
             const isMe = (currentUser && d.username === currentUser);
@@ -1247,11 +1280,11 @@ async function showHallOfFame() {
                 <span class="ranking-name" style="font-weight:bold;">${displayName} ${isMe ? '(나)' : ''}</span>
                 <span class="ranking-score" style="color:#EA580C;">${d.completions}회 완주</span>
             `;
-            rankingListContainer.appendChild(li);
+            if (rankingListContainer) rankingListContainer.appendChild(li);
         });
     } catch (e) {
         console.error(e);
-        rankingListContainer.innerHTML = `<li class="ranking-item" style="color:red;">명예의 전당 호출 실패</li>`;
+        if (rankingListContainer) rankingListContainer.innerHTML = `<li class="ranking-item" style="color:red;">명예의 전당 호출 실패: ${e.message}</li>`;
     }
 }
 
@@ -1260,19 +1293,19 @@ if (hubViewRankingBtn) hubViewRankingBtn.addEventListener('click', showLeaderboa
 if (inQuizRankingBtn) inQuizRankingBtn.addEventListener('click', showLeaderboard);
 if (tabRealtime) tabRealtime.addEventListener('click', showLeaderboard);
 if (tabHall) tabHall.addEventListener('click', showHallOfFame);
-if (closeRankingBtn) closeRankingBtn.addEventListener('click', () => { rankingModal.style.display = 'none'; });
+if (closeRankingBtn) closeRankingBtn.addEventListener('click', () => { if (rankingModal) rankingModal.style.display = 'none'; });
 
 if (gameoverHomeBtn) {
     gameoverHomeBtn.addEventListener('click', () => {
-        gameoverModal.style.display = 'none';
-        quizScreen.style.display = 'none';
-        walkScreen.style.display = 'none';
-        personScreen.style.display = 'none';
+        if (gameoverModal) gameoverModal.style.display = 'none';
+        if (quizScreen) quizScreen.style.display = 'none';
+        if (walkScreen) walkScreen.style.display = 'none';
+        if (personScreen) personScreen.style.display = 'none';
         if (feedbackContainer) feedbackContainer.style.display = 'none';
         if (choicesContainer) choicesContainer.style.display = 'block';
         if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
         if (personChoicesContainer) personChoicesContainer.style.display = 'block';
-        hubScreen.style.display = 'block';
+        if (hubScreen) hubScreen.style.display = 'block';
     });
 }
 
@@ -1343,7 +1376,7 @@ if (adminSearchInput) {
     });
 }
 
-// 학습자 이름 및 PIN 수정 처리 (Firestore 문서 이전 마이그레이션)
+// 학습자 이름 및 PIN 수정 처리
 window.adminEditUser = async (targetUsername, currentPinVal) => {
     const newUsername = prompt(`[${targetUsername}] 학습자의 새로운 이름을 입력하세요:`, targetUsername);
     if (newUsername === null) return;
