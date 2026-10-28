@@ -1,4 +1,4 @@
-// app.js - 스크립트 실행 중단 차단 및 모달 제어 완전 안정화
+// app.js - 검증된 정상 작동 버전 기반 완전 복구판
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { 
     getFirestore, collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy 
@@ -12,7 +12,7 @@ const db = getFirestore(app);
 
 // 명예의 전당 목표 점수 (1,000점) 및 깜짝 선물 점수 (999점)
 const HALL_OF_FAME_TARGET_SCORE = 1000;
-const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1;
+const SURPRISE_GIFT_SCORE = HALL_OF_FAME_TARGET_SCORE - 1; // 999점
 
 // 화면 컨테이너
 const authScreen = document.getElementById('auth-screen');
@@ -278,10 +278,10 @@ async function saveToHallOfFame() {
 }
 
 // -------------------------------------------------------------
-// [인증 및 허브 제어 - 스크립트 잠금 없는 독립적 구동]
+// [인증 및 허브 제어 - 검증된 원본 복구]
 // -------------------------------------------------------------
 if (loginBtn) {
-    loginBtn.addEventListener('click', async () => {
+    loginBtn.onclick = async () => {
         const inputName = usernameInput ? usernameInput.value.trim() : "";
         const inputPin = pinInput ? pinInput.value.trim() : "";
 
@@ -308,6 +308,8 @@ if (loginBtn) {
                 if (userData.pin && userData.pin !== inputPin) {
                     alert("🔒 비밀번호가 일치하지 않습니다!\n본인 계정이 아니면 다른 이름을 입력해 주세요.");
                     if (pinInput) pinInput.focus();
+                    loginBtn.innerText = "학습 센터 입장하기";
+                    loginBtn.disabled = false;
                     return;
                 } else if (!userData.pin) {
                     await setDoc(userDocRef, { pin: inputPin }, { merge: true });
@@ -356,50 +358,48 @@ if (loginBtn) {
             updateScoreBoard();
             updateLivesIcon();
 
+            loginBtn.innerText = "학습 센터 입장하기";
+            loginBtn.disabled = false;
+
             if (authScreen) authScreen.style.display = 'none';
             if (hubScreen) hubScreen.style.display = 'block';
 
         } catch (error) {
             console.error("로그인 에러:", error);
-            alert(`로그인 처리 중 에러가 발생했습니다:\n${error.message}\n네트워크 상태와 Firebase 보안 규칙을 확인해 주세요.`);
-        } finally {
-            if (loginBtn) {
-                loginBtn.innerText = "학습 센터 입장하기";
-                loginBtn.disabled = false;
-            }
+            alert(`로그인 처리 중 에러가 발생했습니다:\n${error.message}\n네트워크 상태를 확인해 주세요.`);
+            loginBtn.innerText = "학습 센터 입장하기";
+            loginBtn.disabled = false;
         }
-    });
+    };
 }
 
 if (hubLogoutBtn) {
-    hubLogoutBtn.addEventListener('click', () => {
+    hubLogoutBtn.onclick = () => {
         localStorage.removeItem('bibleQuizUser');
         localStorage.removeItem('bibleQuizPin');
         if (usernameInput) usernameInput.value = "";
         if (pinInput) pinInput.value = "";
         if (hubScreen) hubScreen.style.display = 'none';
         if (authScreen) authScreen.style.display = 'block';
-    });
+    };
 }
 
-// 모달 제어 함수 (CSS .open 클래스 방식 적용)
-function openModal(modalEl) {
-    if (modalEl) modalEl.classList.add('open');
-}
-function closeModal(modalEl) {
-    if (modalEl) modalEl.classList.remove('open');
-}
-
+// 물음표(도움말) 모달 열기/닫기
 if (hubHelpBtn) {
-    hubHelpBtn.addEventListener('click', () => openModal(helpModal));
+    hubHelpBtn.onclick = () => {
+        if (helpModal) helpModal.style.display = 'flex';
+    };
 }
+
 if (closeHelpBtn) {
-    closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
+    closeHelpBtn.onclick = () => {
+        if (helpModal) helpModal.style.display = 'none';
+    };
 }
 
 // 모드 전환
 if (modeQuizBtn) {
-    modeQuizBtn.addEventListener('click', async () => {
+    modeQuizBtn.onclick = async () => {
         if (quizDataList.length === 0) {
             const querySnapshot = await getDocs(collection(db, "quizzes"));
             querySnapshot.forEach((docSnap) => quizDataList.push(docSnap.data()));
@@ -408,19 +408,19 @@ if (modeQuizBtn) {
         if (hubScreen) hubScreen.style.display = 'none';
         if (quizScreen) quizScreen.style.display = 'block';
         loadQuestion();
-    });
+    };
 }
 
 if (modeWalkBtn) {
-    modeWalkBtn.addEventListener('click', () => {
+    modeWalkBtn.onclick = () => {
         if (hubScreen) hubScreen.style.display = 'none';
         if (walkScreen) walkScreen.style.display = 'block';
         setupWalkMode();
-    });
+    };
 }
 
 if (modePersonBtn) {
-    modePersonBtn.addEventListener('click', async () => {
+    modePersonBtn.onclick = async () => {
         if (personData.length === 0) {
             try {
                 const module = await import("./data_person.js");
@@ -437,38 +437,38 @@ if (modePersonBtn) {
         if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
         if (personChoicesContainer) personChoicesContainer.style.display = 'block';
         loadPersonQuestion();
-    });
+    };
 }
 
 if (backToHubFromQuiz) {
-    backToHubFromQuiz.addEventListener('click', () => {
+    backToHubFromQuiz.onclick = () => {
         if (quizScreen) quizScreen.style.display = 'none';
         if (feedbackContainer) feedbackContainer.style.display = 'none';
         if (choicesContainer) choicesContainer.style.display = 'block';
         if (hubScreen) hubScreen.style.display = 'block';
         updateScoreBoard();
         updateLivesIcon();
-    });
+    };
 }
 
 if (backToHubFromWalk) {
-    backToHubFromWalk.addEventListener('click', () => {
+    backToHubFromWalk.onclick = () => {
         if (walkScreen) walkScreen.style.display = 'none';
         if (hubScreen) hubScreen.style.display = 'block';
         updateScoreBoard();
         updateLivesIcon();
-    });
+    };
 }
 
 if (backToHubFromPerson) {
-    backToHubFromPerson.addEventListener('click', () => {
+    backToHubFromPerson.onclick = () => {
         if (personScreen) personScreen.style.display = 'none';
         if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
         if (personChoicesContainer) personChoicesContainer.style.display = 'block';
         if (hubScreen) hubScreen.style.display = 'block';
         updateScoreBoard();
         updateLivesIcon();
-    });
+    };
 }
 
 // -------------------------------------------------------------
@@ -577,12 +577,13 @@ function showFeedback(title, text, isCorrect) {
 }
 
 if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
+    nextBtn.onclick = () => {
         currentQuizIndex++;
         loadQuestion();
-    });
+    };
 }
 
+// 라이프 소진 시 보물 점수를 절반(50%)으로 보존
 async function triggerGameOver() {
     if (choicesContainer) {
         choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
@@ -606,7 +607,7 @@ async function triggerGameOver() {
             새로운 라이프(❤️❤️❤️❤️❤️)가 충전되었습니다.
         `;
     }
-    openModal(gameoverModal);
+    if (gameoverModal) gameoverModal.style.display = 'flex';
 }
 
 // -------------------------------------------------------------
@@ -796,7 +797,7 @@ function renderWalkCalendar(year, month) {
         }
 
         dayCell.onclick = () => {
-            closeModal(walkCalendarModal);
+            if (walkCalendarModal) walkCalendarModal.style.display = 'none';
             setupWalkMode(thisDateStr);
         };
 
@@ -805,39 +806,41 @@ function renderWalkCalendar(year, month) {
 }
 
 if (calendarTriggerBtn) {
-    calendarTriggerBtn.addEventListener('click', () => {
+    calendarTriggerBtn.onclick = () => {
         if (!calViewYear || isNaN(calViewYear)) calViewYear = (new Date()).getFullYear();
         if (!calViewMonth || isNaN(calViewMonth)) calViewMonth = (new Date()).getMonth() + 1;
 
         renderWalkCalendar(calViewYear, calViewMonth);
-        openModal(walkCalendarModal);
-    });
+        if (walkCalendarModal) walkCalendarModal.style.display = 'flex';
+    };
 }
 
 if (calPrevBtn) {
-    calPrevBtn.addEventListener('click', () => {
+    calPrevBtn.onclick = () => {
         calViewMonth--;
         if (calViewMonth < 1) {
             calViewMonth = 12;
             calViewYear--;
         }
         renderWalkCalendar(calViewYear, calViewMonth);
-    });
+    };
 }
 
 if (calNextBtn) {
-    calNextBtn.addEventListener('click', () => {
+    calNextBtn.onclick = () => {
         calViewMonth++;
         if (calViewMonth > 12) {
             calViewMonth = 1;
             calViewYear++;
         }
         renderWalkCalendar(calViewYear, calViewMonth);
-    });
+    };
 }
 
 if (closeCalendarBtn) {
-    closeCalendarBtn.addEventListener('click', () => closeModal(walkCalendarModal));
+    closeCalendarBtn.onclick = () => {
+        if (walkCalendarModal) walkCalendarModal.style.display = 'none';
+    };
 }
 
 function updatePuzzleBadge() {
@@ -953,13 +956,13 @@ function returnTileToBank(tileElement, tileText) {
 }
 
 if (puzzleResetBtn) {
-    puzzleResetBtn.addEventListener('click', () => {
+    puzzleResetBtn.onclick = () => {
         setupWordPuzzle();
-    });
+    };
 }
 
 if (puzzleCheckBtn) {
-    puzzleCheckBtn.addEventListener('click', async () => {
+    puzzleCheckBtn.onclick = async () => {
         const todayStr = getTodayDateString();
         const isToday = (viewingPlanDateStr === todayStr);
 
@@ -1012,7 +1015,7 @@ if (puzzleCheckBtn) {
             updatePuzzleBadge();
             alert(`순서가 아직 맞지 않습니다. (조립 박스 안의 조각을 터치해 위치를 조정해 보세요!)\n${isToday ? '현재 남은 기회 보너스: ' + (walkPuzzleAttempts === 1 ? '💎 8점' : '💎 5점') : '다시 차근차근 맞춰 보세요!'}`);
         }
-    });
+    };
 }
 
 // -------------------------------------------------------------
@@ -1127,7 +1130,7 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
 }
 
 if (personNextBtn) {
-    personNextBtn.addEventListener('click', () => {
+    personNextBtn.onclick = () => {
         currentPersonIndex++;
         if (personFeedbackContainer) {
             personFeedbackContainer.style.display = 'none';
@@ -1136,7 +1139,7 @@ if (personNextBtn) {
             personChoicesContainer.style.display = 'block';
         }
         loadPersonQuestion();
-    });
+    };
 }
 
 // -------------------------------------------------------------
@@ -1182,12 +1185,12 @@ function showRewardModal(icon, title, desc, badge, willReset) {
     if (rewardModalDesc) rewardModalDesc.innerHTML = desc;
     if (rewardModalBadge) rewardModalBadge.innerText = badge;
     resetPendingAfterReward = willReset;
-    openModal(rewardModal);
+    if (rewardModal) rewardModal.style.display = 'flex';
 }
 
 if (closeRewardBtn) {
-    closeRewardBtn.addEventListener('click', () => {
-        closeModal(rewardModal);
+    closeRewardBtn.onclick = () => {
+        if (rewardModal) rewardModal.style.display = 'none';
         if (resetPendingAfterReward) {
             currentScore = 0;
             resetPendingAfterReward = false;
@@ -1196,7 +1199,7 @@ if (closeRewardBtn) {
             saveUserData(currentScore, totalLives);
             alert("점수가 0점으로 리셋되었습니다. 다회차 완주에 도전하세요!");
         }
-    });
+    };
 }
 
 async function showLeaderboard() {
@@ -1204,7 +1207,7 @@ async function showLeaderboard() {
     if (tabHall) tabHall.classList.remove('active');
     if (rankingListContainer) rankingListContainer.innerHTML = `<li class="ranking-item">순위를 집계 중입니다...</li>`;
     if (myCurrentRankText) myCurrentRankText.innerText = "";
-    openModal(rankingModal);
+    if (rankingModal) rankingModal.style.display = 'flex';
 
     try {
         const q = query(collection(db, "users"), orderBy("score", "desc"));
@@ -1283,16 +1286,16 @@ async function showHallOfFame() {
     }
 }
 
-if (viewRankingBtn) viewRankingBtn.addEventListener('click', showLeaderboard);
-if (hubViewRankingBtn) hubViewRankingBtn.addEventListener('click', showLeaderboard);
-if (inQuizRankingBtn) inQuizRankingBtn.addEventListener('click', showLeaderboard);
-if (tabRealtime) tabRealtime.addEventListener('click', showLeaderboard);
-if (tabHall) tabHall.addEventListener('click', showHallOfFame);
-if (closeRankingBtn) closeRankingBtn.addEventListener('click', () => closeModal(rankingModal));
+if (viewRankingBtn) viewRankingBtn.onclick = showLeaderboard;
+if (hubViewRankingBtn) hubViewRankingBtn.onclick = showLeaderboard;
+if (inQuizRankingBtn) inQuizRankingBtn.onclick = showLeaderboard;
+if (tabRealtime) tabRealtime.onclick = showLeaderboard;
+if (tabHall) tabHall.onclick = showHallOfFame;
+if (closeRankingBtn) closeRankingBtn.onclick = () => { if (rankingModal) rankingModal.style.display = 'none'; };
 
 if (gameoverHomeBtn) {
-    gameoverHomeBtn.addEventListener('click', () => {
-        closeModal(gameoverModal);
+    gameoverHomeBtn.onclick = () => {
+        if (gameoverModal) gameoverModal.style.display = 'none';
         if (quizScreen) quizScreen.style.display = 'none';
         if (walkScreen) walkScreen.style.display = 'none';
         if (personScreen) personScreen.style.display = 'none';
@@ -1301,7 +1304,7 @@ if (gameoverHomeBtn) {
         if (personFeedbackContainer) personFeedbackContainer.style.display = 'none';
         if (personChoicesContainer) personChoicesContainer.style.display = 'block';
         if (hubScreen) hubScreen.style.display = 'block';
-    });
+    };
 }
 
 // -------------------------------------------------------------
@@ -1351,22 +1354,24 @@ async function loadAdminUsers() {
 }
 
 if (adminManageBtn) {
-    adminManageBtn.addEventListener('click', () => {
-        openModal(adminModal);
+    adminManageBtn.onclick = () => {
+        if (adminModal) adminModal.style.display = 'flex';
         loadAdminUsers();
-    });
+    };
 }
 
 if (closeAdminBtn) {
-    closeAdminBtn.addEventListener('click', () => closeModal(adminModal));
+    closeAdminBtn.onclick = () => {
+        if (adminModal) adminModal.style.display = 'none';
+    };
 }
 
 if (adminSearchInput) {
-    adminSearchInput.addEventListener('input', (e) => {
+    adminSearchInput.oninput = (e) => {
         const kw = e.target.value.trim().toLowerCase();
         const filtered = adminUsersList.filter(u => String(u.username).toLowerCase().includes(kw));
         renderAdminTable(filtered);
-    });
+    };
 }
 
 window.adminEditUser = async (targetUsername, currentPinVal) => {
