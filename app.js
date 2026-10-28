@@ -1,4 +1,4 @@
-// app.js
+// app.js - 안정성 복구 및 완전 무결점 버전
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { 
     getFirestore, collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy 
@@ -6,7 +6,16 @@ import {
 import { firebaseConfig } from "./firebase-config.js"; 
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
-import { personData } from "./data_person.js"; // 🌟 안전한 정적 임포트로 변경하여 스크립트 정체 차단
+
+// 🌟 스크립트 전체 정체를 막기 위한 안전한 백그라운드 인물 데이터 로딩
+let personData = [];
+import("./data_person.js")
+    .then(module => {
+        personData = module.personData || [];
+    })
+    .catch(err => {
+        console.warn("data_person.js 로드 대기 또는 미존재: 인물 퀴즈 진입 시 재시도합니다.", err);
+    });
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -160,7 +169,7 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
-// 시스템 달력 기반 실시간 요일 계산 헬퍼
+// 실시간 요일 계산 동적 헬퍼
 function getDynamicDateDisplay(year, month, day) {
     const targetDate = new Date(year, month - 1, day);
     const dayName = KOREAN_WEEKDAYS[targetDate.getDay()];
@@ -281,7 +290,7 @@ async function saveToHallOfFame() {
 }
 
 // -------------------------------------------------------------
-// [인증 및 허브 제어 - 로그인 안정성 100% 보장]
+// [인증 및 허브 제어 - 안정적인 원본 복구]
 // -------------------------------------------------------------
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
@@ -359,7 +368,6 @@ if (loginBtn) {
             updateScoreBoard();
             updateLivesIcon();
 
-            // 🌟 확실한 화면 전환
             if (authScreen) authScreen.style.display = 'none';
             if (hubScreen) hubScreen.style.display = 'block';
 
@@ -367,8 +375,10 @@ if (loginBtn) {
             console.error("로그인 에러:", error);
             alert(`로그인 처리 중 에러가 발생했습니다:\n${error.message}\n네트워크 상태와 Firebase 보안 규칙을 확인해 주세요.`);
         } finally {
-            loginBtn.innerText = "학습 센터 입장하기";
-            loginBtn.disabled = false;
+            if (loginBtn) {
+                loginBtn.innerText = "학습 센터 입장하기";
+                loginBtn.disabled = false;
+            }
         }
     });
 }
@@ -420,8 +430,17 @@ if (modeWalkBtn) {
 }
 
 if (modePersonBtn) {
-    modePersonBtn.addEventListener('click', () => {
+    modePersonBtn.addEventListener('click', async () => {
+        // 인물 데이터가 로드되지 않은 상태라면 클릭 시점 안전 로딩
         if (personList.length === 0) {
+            if (personData.length === 0) {
+                try {
+                    const module = await import("./data_person.js");
+                    personData = module.personData || [];
+                } catch (e) {
+                    console.warn("인물 데이터 로드 실패:", e);
+                }
+            }
             personList = shuffleArray([...personData]);
         }
         if (hubScreen) hubScreen.style.display = 'none';
@@ -575,7 +594,7 @@ if (nextBtn) {
     });
 }
 
-// 라이프 소진 시 보물 점수를 절반(50%)으로 보존하는 게임 오버 로직
+// 라이프 소진 시 보물 점수를 절반(50%)으로 보존
 async function triggerGameOver() {
     if (choicesContainer) {
         choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
@@ -862,6 +881,7 @@ function updatePuzzleBadge() {
     }
 }
 
+// 🌟 정답 완성 시 타일 고정(Fix) 및 재클릭 방지 로직
 function setupWordPuzzle() {
     if (!currentWalkPlan || !puzzleVerseRef || !puzzleDropZone || !puzzleTileZone) return;
     puzzleVerseRef.innerText = `[암기 목표] ${currentWalkPlan.memory_verse.reference_display}`;
@@ -1023,7 +1043,7 @@ if (puzzleCheckBtn) {
 // -------------------------------------------------------------
 function loadPersonQuestion() {
     if (personData.length === 0) {
-        alert("인물 데이터를 불러오는 중입니다. data_person.js 파일을 확인해 주세요.");
+        alert("인물 데이터를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
         return;
     }
 
