@@ -844,12 +844,30 @@ function updatePuzzleBadge() {
     }
 }
 
+// [app.js] 정답 완성 시 타일 고정(Fix) 및 재클릭 방지 로직 개선
+
 function setupWordPuzzle() {
     puzzleVerseRef.innerText = `[암기 목표] ${currentWalkPlan.memory_verse.reference_display}`;
     puzzleDropZone.innerHTML = '';
     puzzleTileZone.innerHTML = '';
     selectedTiles = [];
 
+    // 이미 오늘 문제를 맞췄거나 완료 상태인 경우: 정답 순서대로 조립하고 클릭 잠금(Fix)
+    if (isPuzzleSolved) {
+        currentWalkPlan.memory_verse.puzzle_tiles.forEach((tileText) => {
+            const tile = document.createElement('div');
+            tile.className = "word-tile placed";
+            tile.style.cursor = "default";
+            tile.style.backgroundColor = "#059669"; // 정답 고정 녹색
+            tile.style.borderColor = "#047857";
+            tile.innerText = tileText;
+            puzzleDropZone.appendChild(tile);
+        });
+        puzzleResetBtn.disabled = true;
+        return;
+    }
+
+    puzzleResetBtn.disabled = false;
     const placeholder = document.createElement('span');
     placeholder.id = "drop-zone-placeholder";
     placeholder.style.fontSize = "0.85rem";
@@ -918,12 +936,7 @@ function returnTileToBank(tileElement, tileText) {
     }
 }
 
-if (puzzleResetBtn) {
-    puzzleResetBtn.addEventListener('click', () => {
-        setupWordPuzzle();
-    });
-}
-
+// 🌟 퍼즐 확인 및 정답 시 조각 고정(Fix)
 if (puzzleCheckBtn) {
     puzzleCheckBtn.addEventListener('click', async () => {
         const todayStr = getTodayDateString();
@@ -941,11 +954,22 @@ if (puzzleCheckBtn) {
         const isCorrect = isFull && selectedTiles.every((t, i) => t.text === correctTiles[i]);
 
         if (isCorrect) {
-            if (isToday) {
-                isPuzzleSolved = true;
-                puzzleCheckBtn.disabled = true;
-                puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
+            // 🌟 정답 달성 시 퍼즐 조각 픽스(Fix) 처리
+            isPuzzleSolved = true;
+            puzzleCheckBtn.disabled = true;
+            puzzleResetBtn.disabled = true;
+            puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
 
+            // 조립 구역 내의 모든 타일 클릭 이벤트 제거 및 시각적 고정
+            selectedTiles.forEach(item => {
+                item.element.onclick = null;
+                item.element.style.cursor = "default";
+                item.element.style.backgroundColor = "#059669"; // 견고한 고정 녹색
+                item.element.style.borderColor = "#047857";
+                item.element.innerText = item.text; // 화살표 제거하고 깔끔한 텍스트로 고정
+            });
+
+            if (isToday) {
                 let earnedPoints = 5;
                 if (walkPuzzleAttempts === 0) {
                     earnedPoints = 10;
@@ -971,7 +995,6 @@ if (puzzleCheckBtn) {
         }
     });
 }
-
 // -------------------------------------------------------------
 // [모드 3: 『성경 인물 맞추기』 로직]
 // -------------------------------------------------------------
