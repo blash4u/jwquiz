@@ -429,20 +429,27 @@
     </div>
 
     <!-- 9. 게임 오버 모달 -->
+    <!-- 1. gameover-modal 내부 문구 수정 -->
     <div id="gameover-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">👏✨</div>
             <h2 class="modal-title">수고하셨습니다!</h2>
             <p class="modal-desc" id="gameover-desc" style="font-size: 1rem; line-height: 1.5;">
                 준비된 5개의 라이프가 모두 소진되었습니다.<br>
-                <strong>모으신 영적 보물이 0개로 초기화되며,</strong><br>
+                <strong>모으신 영적 보물이 절반으로 조정되며,</strong><br>
                 라이프가 5개로 재충전되었습니다. 다시 도전해 보세요!
             </p>
             <div class="coupon-box" id="gameover-rank-box">
-                점수 리셋 처리 중...
+            점수 조정 처리 중...
             </div>
             <button id="gameover-home-btn" class="btn-primary" style="width: 100%;">학습 센터로 돌아가기</button>
         </div>
+    </div>
+
+<!-- 2. help-modal 내부 4번 항목 문구 수정 -->
+    <div class="guide-section" style="border-left-color: #EF4444;">
+        <h4 style="color: #DC2626;">❤️ 4. 라이프 시스템 & 게임 오버</h4>
+        <p>모든 모드는 <strong>5개의 라이프(❤️❤️❤️❤️❤️)</strong>를 공유합니다. 라이프를 모두 소진하면 영적 보물이 <strong>절반으로 줄어들며</strong> 라이프 5개가 새로 충전됩니다.</p>
     </div>
 
     <!-- 10. 관리자 전용 회원 관리 모달 (?admin=true 시 사용) -->
