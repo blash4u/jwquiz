@@ -7,10 +7,10 @@
     <title>그리스도인 성경 학습 센터</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
-        body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        .container { text-align: center; padding: 25px 20px; width: 100%; max-width: 480px; }
+        body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; position: relative; }
+        .container { text-align: center; padding: 25px 20px; width: 100%; max-width: 480px; position: relative; z-index: 5; }
 
-        /* 🌟 로그인 화면이 가림막 뒤로 숨지 않도록 최상단 레이어 보장 */
+        /* 로그인 폼 터치/클릭 우선순위 보장 */
         #auth-screen {
             position: relative;
             z-index: 10;
@@ -130,7 +130,7 @@
         .word-tile.placed { background: #EA580C; color: #fff; border-color: #C2410C; }
         .tile-arrow { font-size: 0.75rem; opacity: 0.8; margin-left: 2px; }
 
-        /* 인물 퀴즈 액자 프레임 */
+        /* 인물 퀴즈 프레임 */
         .person-image-container {
             width: 100%; height: 210px; background: #FAF5FF; border-radius: 10px;
             overflow: hidden; margin-bottom: 12px; display: flex; justify-content: center;
@@ -162,14 +162,20 @@
         .cal-day-cell.has-data { font-weight: 900; }
         .cal-day-cell.disabled { opacity: 0.25; cursor: not-allowed; background: transparent; }
 
-        /* 🌟 팝업 모달 공통 - 비활성화 시 터치/클릭을 절대 가로막지 않도록 방어 */
+        /* 모달 오버레이 (비활성화 상태에서 마우스 이벤트를 완전히 통과) */
         .modal-overlay {
-            display: none;
+            display: none !important;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.65); z-index: 100;
             justify-content: center; align-items: center; padding: 15px;
-            pointer-events: auto; /* 열렸을 때만 클릭 유효 */
+            pointer-events: none;
         }
+        /* 자바스크립트에 의해 모달이 열릴 때만 활성화 */
+        .modal-overlay.open {
+            display: flex !important;
+            pointer-events: auto;
+        }
+
         .modal-card {
             background-color: #ffffff; border-radius: 16px; padding: 24px 18px; max-width: 420px; width: 100%;
             text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 3px solid #F97316;
@@ -198,7 +204,7 @@
         .admin-table th { background: #FFEDD5; color: #431407; }
         .admin-table tr:nth-child(even) { background: #FFF7ED; }
 
-        /* 도움말 가이드 스타일 */
+        /* 도움말 스타일 */
         .guide-section { text-align: left; margin-bottom: 14px; background: #FFF7ED; border-radius: 10px; padding: 12px; border-left: 4px solid #F97316; }
         .guide-section h4 { font-size: 0.98rem; color: #C2410C; margin-bottom: 6px; font-weight: bold; }
         .guide-section p, .guide-section li { font-size: 0.86rem; color: #4B5563; line-height: 1.5; }
@@ -206,7 +212,7 @@
     </style>
 </head>
 <body>
-    <!-- 1. 계정 인증 화면 (명시적 최상위 레이어) -->
+    <!-- 1. 계정 인증 화면 -->
     <div id="auth-screen" class="container">
         <div class="logo-square">
             <span>JW</span>
@@ -389,8 +395,8 @@
         </div>
     </div>
 
-    <!-- 🌟 6. 커스텀 월 달력 모달 (인라인 style="display: none;" 명시적 차단) -->
-    <div id="walk-calendar-modal" class="modal-overlay" style="display: none;">
+    <!-- 6. 커스텀 월 달력 모달 -->
+    <div id="walk-calendar-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 360px;">
             <div class="calendar-nav">
                 <button id="cal-prev-btn" class="cal-nav-btn">&lt; 이전달</button>
@@ -406,8 +412,8 @@
         </div>
     </div>
 
-    <!-- 🌟 7. 보상 모달 (인라인 style="display: none;" 명시적 차단) -->
-    <div id="reward-modal" class="modal-overlay" style="display: none;">
+    <!-- 7. 보상 모달 -->
+    <div id="reward-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon" id="reward-modal-icon">🎁✨</div>
             <h2 class="modal-title" id="reward-modal-title">기적의 깜짝 선물!</h2>
@@ -417,8 +423,8 @@
         </div>
     </div>
 
-    <!-- 🌟 8. 순위표 & 명예의 전당 모달 (인라인 style="display: none;" 명시적 차단) -->
-    <div id="ranking-modal" class="modal-overlay" style="display: none;">
+    <!-- 8. 순위표 & 명예의 전당 모달 -->
+    <div id="ranking-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">🏆</div>
             <h2 class="modal-title">전당 & 순위표</h2>
@@ -436,8 +442,8 @@
         </div>
     </div>
 
-    <!-- 🌟 9. 게임 오버 모달 (인라인 style="display: none;" 명시적 차단) -->
-    <div id="gameover-modal" class="modal-overlay" style="display: none;">
+    <!-- 9. 게임 오버 모달 -->
+    <div id="gameover-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">👏✨</div>
             <h2 class="modal-title">수고하셨습니다!</h2>
@@ -453,8 +459,8 @@
         </div>
     </div>
 
-    <!-- 🌟 10. 관리자 모달 (인라인 style="display: none;" 명시적 차단) -->
-    <div id="admin-modal" class="modal-overlay" style="display: none;">
+    <!-- 10. 관리자 모달 -->
+    <div id="admin-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 460px;">
             <div class="modal-icon">🛠️</div>
             <h2 class="modal-title">학습자 계정 관리실</h2>
@@ -482,8 +488,8 @@
         </div>
     </div>
 
-    <!-- 🌟 11. 게임 방법 및 점수 체계 안내 모달 (인라인 style="display: none;" 명시적 차단) -->
-    <div id="help-modal" class="modal-overlay" style="display: none;">
+    <!-- 11. 게임 방법 및 점수 체계 안내 모달 -->
+    <div id="help-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 440px;">
             <div class="modal-icon">📖💡</div>
             <h2 class="modal-title">학습 가이드 & 점수 체계</h2>
