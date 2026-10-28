@@ -244,7 +244,7 @@
                 <span class="mode-title">🎯 성경 구절 퀴즈</span>
                 <span class="mode-badge" id="hub-lives-badge">❤️❤️❤️❤️❤️</span>
             </div>
-            <p class="mode-desc">생활 주제별 148개 핵심 구절 5지선다 퀴즈입니다. 라이프 5개를 지키며 1,000점을 향해 도전하세요!</p>
+            <p class="mode-desc">생활 주제별 148개 핵심 구절 5지선다 퀴즈입니다. 라이프를 지키며 1,000점을 향해 도전하세요!</p>
         </div>
 
         <!-- 모드 2: 진리의 빛 안에서 -->
@@ -386,7 +386,7 @@
         <div class="modal-card" style="max-width: 360px;">
             <div class="calendar-nav">
                 <button id="cal-prev-btn" class="cal-nav-btn">&lt; 이전달</button>
-                <h3 id="cal-month-title">2026년 9월</h3>
+                <h3 id="cal-month-title">2026년 10월</h3>
                 <button id="cal-next-btn" class="cal-nav-btn">다음달 &gt;</button>
             </div>
             <div class="calendar-grid-header">
@@ -409,7 +409,7 @@
         </div>
     </div>
 
-    <!-- 8. 순위표 & 명예의 전당 모달 (완전 익명화 적용) -->
+    <!-- 8. 순위표 & 명예의 전당 모달 -->
     <div id="ranking-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">🏆</div>
@@ -429,7 +429,6 @@
     </div>
 
     <!-- 9. 게임 오버 모달 -->
-    <!-- 1. gameover-modal 내부 문구 수정 -->
     <div id="gameover-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-icon">👏✨</div>
@@ -440,24 +439,18 @@
                 라이프가 5개로 재충전되었습니다. 다시 도전해 보세요!
             </p>
             <div class="coupon-box" id="gameover-rank-box">
-            점수 조정 처리 중...
+                점수 조정 처리 중...
             </div>
             <button id="gameover-home-btn" class="btn-primary" style="width: 100%;">학습 센터로 돌아가기</button>
         </div>
     </div>
 
-<!-- 2. help-modal 내부 4번 항목 문구 수정 -->
-    <div class="guide-section" style="border-left-color: #EF4444;">
-        <h4 style="color: #DC2626;">❤️ 4. 라이프 시스템 & 게임 오버</h4>
-        <p>모든 모드는 <strong>5개의 라이프(❤️❤️❤️❤️❤️)</strong>를 공유합니다. 라이프를 모두 소진하면 영적 보물이 <strong>절반으로 줄어들며</strong> 라이프 5개가 새로 충전됩니다.</p>
-    </div>
-
-    <!-- 10. 관리자 전용 회원 관리 모달 (?admin=true 시 사용) -->
+    <!-- 10. 관리자 모달 -->
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 460px;">
             <div class="modal-icon">🛠️</div>
             <h2 class="modal-title">학습자 계정 관리실</h2>
-            <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;">이름/점수 수정 및 비밀번호 재설정, 계정 삭제가 가능합니다.</p>
+            <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;">이름 수정 및 비밀번호 재설정, 계정 삭제가 가능합니다.</p>
             
             <input type="text" id="admin-search-input" class="text-input" placeholder="이름으로 학습자 검색..." style="padding: 8px; margin-bottom: 10px; font-size: 0.9rem;">
             
@@ -481,7 +474,7 @@
         </div>
     </div>
 
-    <!-- 🌟 11. [수정 완료] 게임 방법 및 점수 체계 안내 모달 (999점 깜짝선물 스포일러 문구 삭제) -->
+    <!-- 🌟 11. 게임 방법 및 점수 체계 안내 모달 (? 클릭 시에만 팝업으로 오픈) -->
     <div id="help-modal" class="modal-overlay">
         <div class="modal-card" style="max-width: 440px;">
             <div class="modal-icon">📖💡</div>
@@ -514,14 +507,15 @@
                 <h4>👤 3. 성경 인물 맞추기 (모드 3)</h4>
                 <ul>
                     <li>180개의 성서 삽화와 3가지 특징 단서를 보고 인물을 맞춥니다.</li>
-                    <li><strong>정답 시:</strong> 💎 +1 획득</li>
+                    <li><strong>정답 시:</strong> 💎 +1점 획득</li>
                     <li><strong>오답 선택 시:</strong> 💎 -3점 감점 및 <strong>라이프(❤️) 1개 차감</strong></li>
                 </ul>
-            </div>    
+            </div>
 
+            <!-- 🌟 물음표 모달 내부에만 정확히 위치하는 4번 항목 -->
             <div class="guide-section" style="border-left-color: #EF4444;">
                 <h4 style="color: #DC2626;">❤️ 4. 라이프 시스템 & 게임 오버</h4>
-                <p>모든 모드는 <strong>5개의 라이프(❤️❤️❤️❤️❤️)</strong>를 공유합니다. 라이프를 모두 소진하면 영적 보물이 <strong>0점으로 초기화</strong>되며 라이프 5개가 새로 충전됩니다.</p>
+                <p>모든 모드는 <strong>5개의 라이프(❤️❤️❤️❤️❤️)</strong>를 공유합니다. 라이프를 모두 소진하면 영적 보물이 <strong>절반으로 줄어들며</strong> 라이프 5개가 새로 충전됩니다.</p>
             </div>
 
             <div class="guide-section" style="border-left-color: #10B981;">
