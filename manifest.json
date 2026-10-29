@@ -3,22 +3,35 @@
   "short_name": "JW퀴즈",
   "description": "진리의 말씀 탐구 성경 퀴즈 및 일용할 성구 묵상 센터",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FFF7ED",
   "theme_color": "#F97316",
   "icons": [
     {
-      "src": "./app-icon.png",
+      "src": "./app-icon.png?v=2",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "./app-icon.png",
+      "src": "./app-icon.png?v=2",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./app-icon.png?v=2",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./app-icon.png?v=2",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
