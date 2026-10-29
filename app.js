@@ -1,4 +1,4 @@
-// app.js - 검증된 정상 작동 버전 기반 완전 복구판
+// app.js - 스마트 기록 복원(Smart-Sync) 및 완전 무결점 버전
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { 
     getFirestore, collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy 
@@ -170,12 +170,6 @@ function maskName(name, isMe) {
     return "***";
 }
 
-// 자동 로그인 입력 복원
-const savedName = localStorage.getItem('bibleQuizUser');
-const savedPin = localStorage.getItem('bibleQuizPin');
-if (savedName && usernameInput) usernameInput.value = savedName;
-if (savedPin && pinInput) pinInput.value = savedPin;
-
 // 관리자 파라미터 체크 (?admin=true)
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('admin') === 'true') {
@@ -228,6 +222,7 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
+// 🌟 데이터 저장 함수 (로컬 + 서버 동시 보존)
 async function saveUserData(score, lives, solvedDate = null, readDate = null) {
     const activeUser = currentUser || localStorage.getItem('bibleQuizUser');
     if (!activeUser) return;
@@ -277,102 +272,163 @@ async function saveToHallOfFame() {
     }
 }
 
-// -------------------------------------------------------------
-// [인증 및 허브 제어 - 검증된 원본 복구]
-// -------------------------------------------------------------
-if (loginBtn) {
-    loginBtn.onclick = async () => {
-        const inputName = usernameInput ? usernameInput.value.trim() : "";
-        const inputPin = pinInput ? pinInput.value.trim() : "";
+// =============================================================
+// [핵심 해결] 스마트 기록 복원 및 로그인 처리 (Smart-Sync)
+// =============================================================
+async function performLogin(inputName, inputPin, isAuto = false) {
+    if (!inputName) {
+        if (!isAuto) alert("학습자 실명을 입력해 주세요!");
+        if (usernameInput) usernameInput.focus();
+        return;
+    }
+    if (!/^\d{4}$/.test(inputPin)) {
+        if (!isAuto) alert("🔒 비밀번호는 반드시 숫자 4자리여야 합니다!");
+        if (pinInput) pinInput.focus();
+        return;
+    }
 
-        if (!inputName) {
-            alert("학습자 실명을 입력해 주세요!");
-            if (usernameInput) usernameInput.focus();
-            return;
-        }
-        if (!/^\d{4}$/.test(inputPin)) {
-            alert("🔒 비밀번호는 반드시 숫자 4자리여야 합니다!");
-            if (pinInput) pinInput.focus();
-            return;
-        }
-
-        loginBtn.innerText = "본인 인증 중...";
+    if (loginBtn) {
+        loginBtn.innerText = isAuto ? "기존 기록 복원 중..." : "본인 인증 중...";
         loginBtn.disabled = true;
+    }
 
-        try {
-            const userDocRef = doc(db, "users", inputName);
-            const userDocSnap = await getDoc(userDocRef);
+    try {
+        const userDocRef = doc(db, "users", inputName);
+        const userDocSnap = await getDoc(userDocRef);
 
-            if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                if (userData.pin && userData.pin !== inputPin) {
+        // 🌟 1단계: 기기(LocalStorage)에 저장되어 있던 기존 점수와 기록 확보
+        const localScore = Number(localStorage.getItem(`score_${inputName}`)) || 0;
+        const localLives = localStorage.getItem(`lives_${inputName}`) !== null 
+            ? Number(localStorage.getItem(`lives_${inputName}`)) 
+            : 5;
+        const localSolvedDate = localStorage.getItem(`lastSolvedDailyDate_${inputName}`) || "";
+        const localReadDate = localStorage.getItem(`lastReadDailyDate_${inputName}`) || "";
+
+        let firestoreData = null;
+
+        if (userDocSnap.exists()) {
+            firestoreData = userDocSnap.data();
+
+            // 비밀번호 일치 여부 검증
+            if (firestoreData.pin && firestoreData.pin !== inputPin) {
+                if (!isAuto) {
                     alert("🔒 비밀번호가 일치하지 않습니다!\n본인 계정이 아니면 다른 이름을 입력해 주세요.");
                     if (pinInput) pinInput.focus();
-                    loginBtn.innerText = "학습 센터 입장하기";
-                    loginBtn.disabled = false;
-                    return;
-                } else if (!userData.pin) {
-                    await setDoc(userDocRef, { pin: inputPin }, { merge: true });
                 }
-                
-                currentScore = userData.score || 0;
-                totalLives = (userData.lives !== undefined) ? userData.lives : 5;
-                userLastSolvedDailyDate = userData.lastSolvedDailyDate || localStorage.getItem(`lastSolvedDailyDate_${inputName}`) || "";
-                userLastReadDailyDate = userData.lastReadDailyDate || localStorage.getItem(`lastReadDailyDate_${inputName}`) || "";
-                
-                localStorage.setItem(`lastSolvedDailyDate_${inputName}`, userLastSolvedDailyDate);
-                localStorage.setItem(`lastReadDailyDate_${inputName}`, userLastReadDailyDate);
-                localStorage.setItem(`score_${inputName}`, currentScore);
-                localStorage.setItem(`lives_${inputName}`, totalLives);
-
-                if (totalLives <= 0) {
-                    totalLives = 5;
-                    await saveUserData(currentScore, totalLives);
-                }
-            } else {
-                currentScore = 0;
-                totalLives = 5;
-                userLastSolvedDailyDate = "";
-                userLastReadDailyDate = "";
-                await setDoc(userDocRef, {
-                    username: inputName,
-                    pin: inputPin,
-                    score: 0,
-                    lives: 5,
-                    lastSolvedDailyDate: "",
-                    lastReadDailyDate: "",
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                });
+                return;
+            } else if (!firestoreData.pin) {
+                // PIN이 없는 구버전 계정일 경우 현재 PIN으로 등록
+                await setDoc(userDocRef, { pin: inputPin }, { merge: true });
             }
+        }
 
+        // 🌟 2단계: 서버 점수와 로컬 점수 중 최고 점수 채택 (기록 소실 원천 방지!)
+        const firestoreScore = firestoreData ? (Number(firestoreData.score) || 0) : 0;
+        currentScore = Math.max(firestoreScore, localScore);
+
+        const firestoreLives = firestoreData && firestoreData.lives !== undefined 
+            ? Number(firestoreData.lives) 
+            : 5;
+        totalLives = (firestoreLives > 0) ? firestoreLives : (localLives > 0 ? localLives : 5);
+
+        userLastSolvedDailyDate = (firestoreData && firestoreData.lastSolvedDailyDate) 
+            ? firestoreData.lastSolvedDailyDate 
+            : localSolvedDate;
+        userLastReadDailyDate = (firestoreData && firestoreData.lastReadDailyDate) 
+            ? firestoreData.lastReadDailyDate 
+            : localReadDate;
+
+        currentUser = inputName;
+
+        // 🌟 3단계: 로컬 스토리지에 복원된 최신 정보 갱신
+        localStorage.setItem('bibleQuizUser', currentUser);
+        localStorage.setItem('bibleQuizPin', inputPin);
+        localStorage.setItem(`score_${currentUser}`, currentScore);
+        localStorage.setItem(`lives_${currentUser}`, totalLives);
+        localStorage.setItem(`lastSolvedDailyDate_${currentUser}`, userLastSolvedDailyDate);
+        localStorage.setItem(`lastReadDailyDate_${currentUser}`, userLastReadDailyDate);
+
+        // 🌟 4단계: Firestore 서버에도 병합된 최고 점수와 기록을 즉시 동기화
+        await setDoc(userDocRef, {
+            username: currentUser,
+            pin: inputPin,
+            score: currentScore,
+            lives: totalLives,
+            lastSolvedDailyDate: userLastSolvedDailyDate,
+            lastReadDailyDate: userLastReadDailyDate,
+            updatedAt: new Date()
+        }, { merge: true });
+
+        // 🌟 5단계: 화면 점수판 및 이름 갱신
+        if (hubPlayerDisplay) hubPlayerDisplay.innerText = currentUser;
+        if (playerDisplay) playerDisplay.innerText = currentUser;
+        if (walkPlayerDisplay) walkPlayerDisplay.innerText = currentUser;
+        if (personPlayerDisplay) personPlayerDisplay.innerText = currentUser;
+
+        updateScoreBoard();
+        updateLivesIcon();
+
+        // 🌟 6단계: 허브 화면으로 전환
+        if (authScreen) authScreen.style.display = 'none';
+        if (hubScreen) hubScreen.style.display = 'block';
+
+        console.log(`[성공] ${currentUser}님의 기존 기록을 완벽히 복원했습니다! (💎 ${currentScore}점, ❤️ ${totalLives}개)`);
+
+    } catch (error) {
+        console.error("로그인/기록 동기화 에러:", error);
+
+        // 🌟 오프라인/서버 에러 시 로컬 저장소 안전 복원 (Fallback)
+        const fallbackScore = Number(localStorage.getItem(`score_${inputName}`)) || 0;
+        const fallbackLives = localStorage.getItem(`lives_${inputName}`) !== null 
+            ? Number(localStorage.getItem(`lives_${inputName}`)) 
+            : 5;
+
+        if (fallbackScore > 0 || localStorage.getItem('bibleQuizPin') === inputPin) {
             currentUser = inputName;
-            localStorage.setItem('bibleQuizUser', currentUser);
-            localStorage.setItem('bibleQuizPin', inputPin);
+            currentScore = fallbackScore;
+            totalLives = fallbackLives;
+            userLastSolvedDailyDate = localStorage.getItem(`lastSolvedDailyDate_${inputName}`) || "";
+            userLastReadDailyDate = localStorage.getItem(`lastReadDailyDate_${inputName}`) || "";
 
-            if (hubPlayerDisplay) hubPlayerDisplay.innerText = currentUser;
-            if (playerDisplay) playerDisplay.innerText = currentUser;
-            if (walkPlayerDisplay) walkPlayerDisplay.innerText = currentUser;
-            if (personPlayerDisplay) personPlayerDisplay.innerText = currentUser;
-            
             updateScoreBoard();
             updateLivesIcon();
-
-            loginBtn.innerText = "학습 센터 입장하기";
-            loginBtn.disabled = false;
 
             if (authScreen) authScreen.style.display = 'none';
             if (hubScreen) hubScreen.style.display = 'block';
 
-        } catch (error) {
-            console.error("로그인 에러:", error);
-            alert(`로그인 처리 중 에러가 발생했습니다:\n${error.message}\n네트워크 상태를 확인해 주세요.`);
+            alert(`기기에 저장된 이전 기록을 불러왔습니다! (💎 ${currentScore}점)`);
+        } else {
+            alert(`로그인 처리 중 에러가 발생했습니다:\n${error.message}\n네트워크 상태와 Firebase 설정을 확인해 주세요.`);
+        }
+    } finally {
+        if (loginBtn) {
             loginBtn.innerText = "학습 센터 입장하기";
             loginBtn.disabled = false;
         }
+    }
+}
+
+// 로그인 버튼 이벤트 바인딩
+if (loginBtn) {
+    loginBtn.onclick = () => {
+        const inputName = usernameInput ? usernameInput.value.trim() : "";
+        const inputPin = pinInput ? pinInput.value.trim() : "";
+        performLogin(inputName, inputPin, false);
     };
 }
 
+// 🌟 페이지 접속 시 자동 로그인 세션 복원
+const savedName = localStorage.getItem('bibleQuizUser');
+const savedPin = localStorage.getItem('bibleQuizPin');
+if (savedName && usernameInput) usernameInput.value = savedName;
+if (savedPin && pinInput) pinInput.value = savedPin;
+
+if (savedName && savedPin && /^\d{4}$/.test(savedPin)) {
+    // 이전 로그인 기록이 남아 있다면 즉시 기존 데이터 자동 복원
+    performLogin(savedName, savedPin, true);
+}
+
+// 로그아웃 (이름 변경)
 if (hubLogoutBtn) {
     hubLogoutBtn.onclick = () => {
         localStorage.removeItem('bibleQuizUser');
@@ -384,13 +440,12 @@ if (hubLogoutBtn) {
     };
 }
 
-// 물음표(도움말) 모달 열기/닫기
+// 도움말 모달
 if (hubHelpBtn) {
     hubHelpBtn.onclick = () => {
         if (helpModal) helpModal.style.display = 'flex';
     };
 }
-
 if (closeHelpBtn) {
     closeHelpBtn.onclick = () => {
         if (helpModal) helpModal.style.display = 'none';
@@ -583,7 +638,7 @@ if (nextBtn) {
     };
 }
 
-// 라이프 소진 시 보물 점수를 절반(50%)으로 보존
+// 🌟 라이프 소진 시 보물 점수 절반(50%) 보존
 async function triggerGameOver() {
     if (choicesContainer) {
         choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
@@ -863,6 +918,7 @@ function updatePuzzleBadge() {
     }
 }
 
+// 🌟 정답 완성 시 타일 고정(Fix) 및 재클릭 방지 로직
 function setupWordPuzzle() {
     if (!currentWalkPlan || !puzzleVerseRef || !puzzleDropZone || !puzzleTileZone) return;
     puzzleVerseRef.innerText = `[암기 목표] ${currentWalkPlan.memory_verse.reference_display}`;
