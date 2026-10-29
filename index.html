@@ -6,20 +6,20 @@
     <meta name="referrer" content="no-referrer">
     <title>그리스도인 성경 학습 센터</title>
 
-    <!-- 🌟 [안드로이드 크롬 및 모바일 정식 앱 아이콘 캐시 갱신 설정] -->
-    <link rel="manifest" href="./manifest.json?v=2">
-    <link rel="icon" type="image/png" sizes="192x192" href="./app-icon.png?v=2">
-    <link rel="apple-touch-icon" sizes="180x180" href="./app-icon.png?v=2">
-    <link rel="shortcut icon" href="./app-icon.png?v=2">
+    <!-- 모바일 홈 화면 앱 아이콘 설정 (캐시 갱신 버전 ?v=3) -->
+    <link rel="manifest" href="./manifest.json?v=3">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon.png?v=3">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=3">
+    <link rel="shortcut icon" href="./icon.png?v=3">
     
-    <!-- 모바일 주소창 및 상태바 테마 색상 (주황색) -->
+    <!-- 모바일 테마 색상 및 웹앱 설정 -->
     <meta name="theme-color" content="#F97316">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="JW퀴즈">
 
-    <!-- 🌟 관리자 모드(?admin=true) 전용 디버그 시스템 -->
+    <!-- 관리자 모드(?admin=true) 전용 디버그 시스템 -->
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('admin') === 'true';
@@ -596,7 +596,7 @@
         </div>
     </div>
 
-    <!-- 🌟 관리자 모드 전용 진단 모니터 박스 (기본 숨김) -->
+    <!-- 관리자 모드 전용 진단 모니터 박스 (기본 숨김) -->
     <div id="debug-box" style="display:none; position:fixed; bottom:0; left:0; width:100%; max-height:140px; overflow-y:auto; background:rgba(17,24,39,0.92); color:#10B981; font-family:monospace; font-size:12px; padding:10px 15px; z-index:99999; text-align:left; border-top:3px solid #F97316; box-shadow:0 -4px 10px rgba(0,0,0,0.3);">
         <div style="font-weight:bold; color:#FDE047;">🛠️ [관리자 모드 전용 진단 모니터] 가동 중...</div>
     </div>
