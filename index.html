@@ -5,10 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
     <title>그리스도인 성경 학습 센터</title>
+
+    <!-- 🌟 [디버그 시스템 1] 스크립트 로드 실패 및 문법 오류 감지기 -->
+    <script>
+        window.addEventListener('error', function(e) {
+            var box = document.getElementById('debug-box');
+            var errText = "❌ [스크립트 에러 발생]\n메시지: " + e.message + "\n파일: " + (e.filename || '알수없음') + "\n줄 번호: " + e.lineno;
+            if (box) {
+                box.style.display = 'block';
+                box.innerHTML += '<div style="color:#EF4444; font-weight:bold; margin-top:4px;">' + errText.replace(/\n/g, '<br>') + '</div>';
+            } else {
+                alert(errText);
+            }
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            var box = document.getElementById('debug-box');
+            var errText = "❌ [비동기 거부 에러]: " + (e.reason ? (e.reason.message || e.reason) : '알수없는 거부');
+            if (box) {
+                box.style.display = 'block';
+                box.innerHTML += '<div style="color:#EF4444; font-weight:bold; margin-top:4px;">' + errText + '</div>';
+            }
+        });
+
+        function logDebug(msg, color) {
+            var box = document.getElementById('debug-box');
+            if (box) {
+                box.style.display = 'block';
+                var d = document.createElement('div');
+                d.style.color = color || '#10B981';
+                d.style.borderBottom = '1px dashed #374151';
+                d.style.padding = '2px 0';
+                d.innerHTML = msg;
+                box.appendChild(d);
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+        window.logDebug = logDebug;
+    </script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
-        body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        .container { text-align: center; padding: 25px 20px; width: 100%; max-width: 480px; position: relative; z-index: 1; }
+        body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; padding-bottom: 160px; }
+        .container { text-align: center; padding: 25px 20px; width: 100%; max-width: 480px; position: relative; z-index: 10; }
 
         /* 공통 버튼 */
         .btn-primary { background-color: #F97316; color: white; border: none; padding: 14px 28px; font-size: 1.05rem; font-weight: bold; border-radius: 28px; cursor: pointer; transition: 0.25s; }
@@ -156,7 +195,7 @@
         .cal-day-cell.has-data { font-weight: 900; }
         .cal-day-cell.disabled { opacity: 0.25; cursor: not-allowed; background: transparent; }
 
-        /* 팝업 모달 공통 (인라인 display 속성과 자연스럽게 연동) */
+        /* 팝업 모달 공통 */
         .modal-overlay {
             display: none;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -528,6 +567,11 @@
 
             <button id="close-help-btn" class="btn-primary" style="width: 100%; margin-top: 6px;">이해했습니다</button>
         </div>
+    </div>
+
+    <!-- 🌟 [디버그 시스템 2] 실시간 화면 디버그 콘솔 출력창 -->
+    <div id="debug-box" style="display:block; position:fixed; bottom:0; left:0; width:100%; max-height:140px; overflow-y:auto; background:rgba(17,24,39,0.92); color:#10B981; font-family:monospace; font-size:12px; padding:10px 15px; z-index:99999; text-align:left; border-top:3px solid #F97316; box-shadow:0 -4px 10px rgba(0,0,0,0.3);">
+        <div style="font-weight:bold; color:#FDE047;">🔍 [실시간 진단 모니터 가동] 시스템 검사 중...</div>
     </div>
 
     <script type="module" src="app.js"></script>
