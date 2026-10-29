@@ -6,29 +6,39 @@
     <meta name="referrer" content="no-referrer">
     <title>그리스도인 성경 학습 센터</title>
 
-    <!-- 🌟 [디버그 시스템 1] 스크립트 로드 실패 및 문법 오류 감지기 -->
+    <!-- 🌟 관리자 모드(?admin=true) 전용 디버그 시스템 -->
     <script>
+        // URL의 admin 파라미터 확인 (?admin=true 일 때만 true)
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdmin = urlParams.get('admin') === 'true';
+
+        // 스크립트 에러 발생 시 처리
         window.addEventListener('error', function(e) {
+            if (!isAdmin) return; // 일반 모드에서는 화면에 띄우지 않음
             var box = document.getElementById('debug-box');
-            var errText = "❌ [스크립트 에러 발생]\n메시지: " + e.message + "\n파일: " + (e.filename || '알수없음') + "\n줄 번호: " + e.lineno;
+            var errText = "❌ [스크립트 에러 발생]<br>메시지: " + e.message + "<br>파일: " + (e.filename || '알수없음') + "<br>줄 번호: " + e.lineno;
             if (box) {
                 box.style.display = 'block';
-                box.innerHTML += '<div style="color:#EF4444; font-weight:bold; margin-top:4px;">' + errText.replace(/\n/g, '<br>') + '</div>';
-            } else {
-                alert(errText);
+                box.innerHTML += '<div style="color:#EF4444; font-weight:bold; margin-top:4px;">' + errText + '</div>';
+                box.scrollTop = box.scrollHeight;
             }
         });
 
+        // 비동기 처리 거부 에러 시 처리
         window.addEventListener('unhandledrejection', function(e) {
+            if (!isAdmin) return; // 일반 모드에서는 화면에 띄우지 않음
             var box = document.getElementById('debug-box');
             var errText = "❌ [비동기 거부 에러]: " + (e.reason ? (e.reason.message || e.reason) : '알수없는 거부');
             if (box) {
                 box.style.display = 'block';
                 box.innerHTML += '<div style="color:#EF4444; font-weight:bold; margin-top:4px;">' + errText + '</div>';
+                box.scrollTop = box.scrollHeight;
             }
         });
 
+        // 실시간 진단 로그 출력 함수
         function logDebug(msg, color) {
+            if (!isAdmin) return; // 관리자 모드가 아니면 화면 출력 차단
             var box = document.getElementById('debug-box');
             if (box) {
                 box.style.display = 'block';
@@ -42,11 +52,20 @@
             }
         }
         window.logDebug = logDebug;
+
+        // 관리자 모드일 경우 하단 박스 공간 확보
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isAdmin) {
+                document.body.style.paddingBottom = '150px';
+                var box = document.getElementById('debug-box');
+                if (box) box.style.display = 'block';
+            }
+        });
     </script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
-        body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; padding-bottom: 160px; }
+        body { background-color: #FFF7ED; color: #1F2937; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         .container { text-align: center; padding: 25px 20px; width: 100%; max-width: 480px; position: relative; z-index: 10; }
 
         /* 공통 버튼 */
@@ -569,9 +588,9 @@
         </div>
     </div>
 
-    <!-- 🌟 [디버그 시스템 2] 실시간 화면 디버그 콘솔 출력창 -->
-    <div id="debug-box" style="display:block; position:fixed; bottom:0; left:0; width:100%; max-height:140px; overflow-y:auto; background:rgba(17,24,39,0.92); color:#10B981; font-family:monospace; font-size:12px; padding:10px 15px; z-index:99999; text-align:left; border-top:3px solid #F97316; box-shadow:0 -4px 10px rgba(0,0,0,0.3);">
-        <div style="font-weight:bold; color:#FDE047;">🔍 [실시간 진단 모니터 가동] 시스템 검사 중...</div>
+    <!-- 🌟 관리자 모드 전용 디버그 콘솔 출력창 (기본값 숨김) -->
+    <div id="debug-box" style="display:none; position:fixed; bottom:0; left:0; width:100%; max-height:140px; overflow-y:auto; background:rgba(17,24,39,0.92); color:#10B981; font-family:monospace; font-size:12px; padding:10px 15px; z-index:99999; text-align:left; border-top:3px solid #F97316; box-shadow:0 -4px 10px rgba(0,0,0,0.3);">
+        <div style="font-weight:bold; color:#FDE047;">🛠️ [관리자 모드 전용 진단 모니터] 가동 중...</div>
     </div>
 
     <script type="module" src="app.js"></script>
