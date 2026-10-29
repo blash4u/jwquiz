@@ -6,29 +6,26 @@
     <meta name="referrer" content="no-referrer">
     <title>그리스도인 성경 학습 센터</title>
 
-    <!-- 🌟 [모바일 홈화면 즐겨찾기 앱 아이콘 설정] -->
-    <!-- iOS (아이폰)용 홈 화면 아이콘 -->
-    <link rel="apple-touch-icon" href="app-icon.png">
-    <!-- Android (안드로이드) 및 일반 모바일 브라우저용 아이콘 -->
-    <link rel="icon" type="image/png" sizes="192x192" href="app-icon.png">
+    <!-- 🌟 [안드로이드 크롬 및 모바일 정식 앱 아이콘 설정] -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./app-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./app-icon.png">
+    <link rel="shortcut icon" href="./app-icon.png">
     
-    <!-- 모바일 주소창 및 상태바 테마 색상 (앱과 일치하는 주황색) -->
+    <!-- 모바일 주소창 및 상태바 테마 색상 -->
     <meta name="theme-color" content="#F97316">
-    <!-- 모바일 웹앱 독립 실행 가능 여부 (홈화면 추가 시 상하단 바 제거 효과) -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- 바로가기 추가 시 기본 앱 타이틀 제안 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="JW퀴즈">
 
     <!-- 🌟 관리자 모드(?admin=true) 전용 디버그 시스템 -->
     <script>
-        // URL의 admin 파라미터 확인 (?admin=true 일 때만 true)
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('admin') === 'true';
 
-        // 스크립트 에러 발생 시 처리
         window.addEventListener('error', function(e) {
-            if (!isAdmin) return; // 일반 모드에서는 화면에 띄우지 않음
+            if (!isAdmin) return;
             var box = document.getElementById('debug-box');
             var errText = "❌ [스크립트 에러 발생]<br>메시지: " + e.message + "<br>파일: " + (e.filename || '알수없음') + "<br>줄 번호: " + e.lineno;
             if (box) {
@@ -38,9 +35,8 @@
             }
         });
 
-        // 비동기 처리 거부 에러 시 처리
         window.addEventListener('unhandledrejection', function(e) {
-            if (!isAdmin) return; // 일반 모드에서는 화면에 띄우지 않음
+            if (!isAdmin) return;
             var box = document.getElementById('debug-box');
             var errText = "❌ [비동기 거부 에러]: " + (e.reason ? (e.reason.message || e.reason) : '알수없는 거부');
             if (box) {
@@ -50,9 +46,8 @@
             }
         });
 
-        // 실시간 진단 로그 출력 함수
         function logDebug(msg, color) {
-            if (!isAdmin) return; // 관리자 모드가 아니면 화면 출력 차단
+            if (!isAdmin) return;
             var box = document.getElementById('debug-box');
             if (box) {
                 box.style.display = 'block';
@@ -67,7 +62,6 @@
         }
         window.logDebug = logDebug;
 
-        // 관리자 모드일 경우 하단 박스 공간 확보
         document.addEventListener('DOMContentLoaded', function() {
             if (isAdmin) {
                 document.body.style.paddingBottom = '150px';
@@ -602,7 +596,7 @@
         </div>
     </div>
 
-    <!-- 🌟 관리자 모드 전용 디버그 콘솔 출력창 (기본값 숨김) -->
+    <!-- 🌟 관리자 모드 전용 진단 모니터 박스 (기본 숨김) -->
     <div id="debug-box" style="display:none; position:fixed; bottom:0; left:0; width:100%; max-height:140px; overflow-y:auto; background:rgba(17,24,39,0.92); color:#10B981; font-family:monospace; font-size:12px; padding:10px 15px; z-index:99999; text-align:left; border-top:3px solid #F97316; box-shadow:0 -4px 10px rgba(0,0,0,0.3);">
         <div style="font-weight:bold; color:#FDE047;">🛠️ [관리자 모드 전용 진단 모니터] 가동 중...</div>
     </div>
