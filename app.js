@@ -1,4 +1,4 @@
-// app.js - 오렌지 3색 테마 통일 및 스마트 기록 복원(Smart-Sync) 완성형 코드
+// app.js - 순위표 TOP 3 실명 공개 및 오렌지 3색 테마 완성형 코드
 if (window.logDebug) window.logDebug("🚀 1. app.js 스크립트 실행 시작됨", "#F97316");
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -169,9 +169,11 @@ function getDynamicDateDisplay(year, month, day) {
     return `${month}월 ${day}일 ${dayName}`;
 }
 
-function maskName(name, isMe) {
-    if (isMe) return name;
-    return "***";
+// 🌟 [핵심 변경] 1, 2, 3위는 실명 노출, 4위부터는 본인 제외 익명(***) 처리
+function maskName(name, isMe, rank = null) {
+    if (isMe) return name; // 본인은 항상 실명 표시
+    if (rank !== null && rank <= 3) return name; // 1, 2, 3등은 실명 공개!
+    return "***"; // 4등부터는 개인정보 보호를 위해 익명 처리
 }
 
 // 관리자 파라미터 체크 (?admin=true)
@@ -650,7 +652,7 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 로직 - 3색 오렌지 통일]
+// [모드 2: 『진리의 빛 안에서』 로직]
 // -------------------------------------------------------------
 function findWalkPlanByDate(month, day) {
     const m = Number(month);
@@ -909,7 +911,6 @@ function setupWordPuzzle() {
     puzzleTileZone.innerHTML = '';
     selectedTiles = [];
 
-    // 정답 순서대로 조립 및 고정 (3색 팔레트: #F97316 바탕 / #431407 텍스트)
     if (isPuzzleSolved) {
         currentWalkPlan.memory_verse.puzzle_tiles.forEach((tileText) => {
             const tile = document.createElement('div');
@@ -1024,7 +1025,6 @@ if (puzzleCheckBtn) {
             if (puzzleResetBtn) puzzleResetBtn.disabled = true;
             puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
 
-            // 정답 완료 시 조각 고정 (3색 오렌지 통일)
             selectedTiles.forEach(item => {
                 item.element.onclick = null;
                 item.element.style.cursor = "default";
@@ -1062,7 +1062,7 @@ if (puzzleCheckBtn) {
 }
 
 // -------------------------------------------------------------
-// [모드 3: 『성경 인물 맞추기』 로직 - 3색 오렌지 통일]
+// [모드 3: 『성경 인물 맞추기』 로직]
 // -------------------------------------------------------------
 function loadPersonQuestion() {
     if (personData.length === 0) {
@@ -1092,7 +1092,6 @@ function loadPersonQuestion() {
         personChoicesContainer.innerHTML = '';
     }
 
-    // 대체 SVG 배경을 오렌지 그라데이션으로 적용
     if (personImage) {
         personImage.onerror = () => {
             const fallbackSvg = `
@@ -1246,6 +1245,7 @@ if (closeRewardBtn) {
     };
 }
 
+// 🌟 [핵심 변경] 실시간 순위 TOP 30 (1, 2, 3위 실명 공개)
 async function showLeaderboard() {
     if (tabRealtime) tabRealtime.classList.add('active');
     if (tabHall) tabHall.classList.remove('active');
@@ -1272,7 +1272,9 @@ async function showLeaderboard() {
                 const li = document.createElement('li');
                 li.className = `ranking-item ${isMe ? 'my-rank' : ''}`;
                 const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}위`;
-                const displayName = maskName(d.username, isMe);
+                
+                // 1, 2, 3등은 실명 노출, 4등 이하는 익명(***)
+                const displayName = maskName(d.username, isMe, rank);
 
                 li.innerHTML = `
                     <span class="ranking-rank">${medal}</span>
@@ -1295,6 +1297,7 @@ async function showLeaderboard() {
     }
 }
 
+// 🌟 [핵심 변경] 명예의 전당 (1, 2, 3위 실명 공개)
 async function showHallOfFame() {
     if (tabHall) tabHall.classList.add('active');
     if (tabRealtime) tabRealtime.classList.remove('active');
@@ -1310,19 +1313,24 @@ async function showHallOfFame() {
         }
 
         if (rankingListContainer) rankingListContainer.innerHTML = '';
+        let rank = 1;
         snap.forEach(docSnap => {
             const d = docSnap.data();
             const isMe = (currentUser && d.username === currentUser);
-            const displayName = maskName(d.username, isMe);
+            
+            // 1, 2, 3등은 실명 노출, 4등 이하는 익명(***)
+            const displayName = maskName(d.username, isMe, rank);
+            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '👑';
 
             const li = document.createElement('li');
             li.className = 'ranking-item';
             li.innerHTML = `
-                <span class="ranking-rank">👑</span>
+                <span class="ranking-rank">${medal}</span>
                 <span class="ranking-name" style="font-weight:bold;">${displayName} ${isMe ? '(나)' : ''}</span>
                 <span class="ranking-score" style="color:#EA580C;">${d.completions}회 완주</span>
             `;
             if (rankingListContainer) rankingListContainer.appendChild(li);
+            rank++;
         });
     } catch (e) {
         console.error(e);
