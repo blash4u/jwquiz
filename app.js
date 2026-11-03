@@ -1,5 +1,5 @@
-// app.js - 실시간 진단 모니터 및 스마트 기록 복원(Smart-Sync) 완성형 코드
-if (window.logDebug) window.logDebug("🚀 1. app.js 스크립트 실행 시작됨", "#3B82F6");
+// app.js - 오렌지 3색 테마 통일 및 스마트 기록 복원(Smart-Sync) 완성형 코드
+if (window.logDebug) window.logDebug("🚀 1. app.js 스크립트 실행 시작됨", "#F97316");
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { 
@@ -9,7 +9,7 @@ import { firebaseConfig } from "./firebase-config.js";
 import { quizData } from "./data.js"; 
 import { walkInData } from "./data_walk.js"; 
 
-if (window.logDebug) window.logDebug("📦 2. 기본 데이터 및 Firebase 모듈 로드 완료", "#3B82F6");
+if (window.logDebug) window.logDebug("📦 2. 기본 데이터 및 Firebase 모듈 로드 완료", "#F97316");
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -226,7 +226,7 @@ function findVerseText(verseName) {
     return "성경 본문 구절입니다.";
 }
 
-// 🌟 데이터 저장 함수 (로컬 + 서버 동시 안전 저장)
+// 데이터 저장 함수
 async function saveUserData(score, lives, solvedDate = null, readDate = null) {
     const activeUser = currentUser || localStorage.getItem('bibleQuizUser');
     if (!activeUser) return;
@@ -253,10 +253,10 @@ async function saveUserData(score, lives, solvedDate = null, readDate = null) {
         if (readDate !== null) updatePayload.lastReadDailyDate = readDate;
 
         await setDoc(doc(db, "users", activeUser), updatePayload, { merge: true });
-        if (window.logDebug) window.logDebug(`💾 [동기화] ${activeUser}님 점수(💎 ${score}) 서버 저장 완료`, "#10B981");
+        if (window.logDebug) window.logDebug(`💾 [동기화] ${activeUser}님 점수(💎 ${score}) 서버 저장 완료`, "#F97316");
     } catch (e) {
         console.warn("서버 저장 실패(로컬 안전 보관):", e);
-        if (window.logDebug) window.logDebug(`⚠️ 서버 저장 제한됨: ${e.message} (기기 로컬에 저장됨)`, "#F59E0B");
+        if (window.logDebug) window.logDebug(`⚠️ 서버 저장 제한됨: ${e.message} (기기 로컬에 저장됨)`, "#EA580C");
     }
 }
 
@@ -278,11 +278,9 @@ async function saveToHallOfFame() {
     }
 }
 
-// =============================================================
-// [핵심 디버그] 스마트 로그인 및 기존 기록 복원 함수
-// =============================================================
+// 스마트 로그인 및 기록 복원
 async function performLogin(inputName, inputPin, isAuto = false) {
-    if (window.logDebug) window.logDebug(`👉 [인증 시작] 이름: "${inputName}", PIN: "${inputPin}" (자동: ${isAuto})`, "#F59E0B");
+    if (window.logDebug) window.logDebug(`👉 [인증 시작] 이름: "${inputName}", PIN: "${inputPin}"`, "#F97316");
 
     if (!inputName) {
         if (!isAuto) alert("학습자 실명을 입력해 주세요!");
@@ -301,7 +299,6 @@ async function performLogin(inputName, inputPin, isAuto = false) {
     }
 
     try {
-        // 1. 기기 로컬에 보관된 기존 데이터 확인
         const localScore = Number(localStorage.getItem(`score_${inputName}`)) || 0;
         const localLives = localStorage.getItem(`lives_${inputName}`) !== null 
             ? Number(localStorage.getItem(`lives_${inputName}`)) 
@@ -309,24 +306,17 @@ async function performLogin(inputName, inputPin, isAuto = false) {
         const localSolvedDate = localStorage.getItem(`lastSolvedDailyDate_${inputName}`) || "";
         const localReadDate = localStorage.getItem(`lastReadDailyDate_${inputName}`) || "";
 
-        if (window.logDebug) window.logDebug(`📱 기기 저장 데이터: 점수 💎 ${localScore}개, 라이프 ❤️ ${localLives}개`, "#3B82F6");
-
         let firestoreData = null;
         let firestoreScore = 0;
 
-        // 2. Firestore 서버 조회 시도
         try {
-            if (window.logDebug) window.logDebug("🌐 Firestore 서버에서 회원 정보 조회 시도...", "#3B82F6");
             const userDocRef = doc(db, "users", inputName);
             const userDocSnap = await getDoc(userDocRef);
 
             if (userDocSnap.exists()) {
                 firestoreData = userDocSnap.data();
-                if (window.logDebug) window.logDebug(`✅ Firestore 문서 발견! 서버 점수: 💎 ${firestoreData.score || 0}`, "#10B981");
 
-                // 비밀번호 검증
                 if (firestoreData.pin && firestoreData.pin !== inputPin) {
-                    if (window.logDebug) window.logDebug("❌ 비밀번호 불일치 (서버 PIN과 입력 PIN 다름)", "#EF4444");
                     if (!isAuto) {
                         alert("🔒 비밀번호가 일치하지 않습니다!\n본인 계정이 아니면 다른 이름을 입력해 주세요.");
                         if (pinInput) pinInput.focus();
@@ -341,7 +331,6 @@ async function performLogin(inputName, inputPin, isAuto = false) {
                 }
                 firestoreScore = Number(firestoreData.score) || 0;
             } else {
-                if (window.logDebug) window.logDebug("ℹ️ 신규 회원 계정 등록 진행", "#3B82F6");
                 await setDoc(userDocRef, {
                     username: inputName,
                     pin: inputPin,
@@ -355,10 +344,8 @@ async function performLogin(inputName, inputPin, isAuto = false) {
             }
         } catch (serverErr) {
             console.warn("Firestore 서버 조회 제한됨:", serverErr);
-            if (window.logDebug) window.logDebug(`⚠️ 서버 조회 실패 (${serverErr.message}). 기기 로컬 데이터로 안전 복원합니다.`, "#F59E0B");
         }
 
-        // 3. 서버 점수와 기기 점수 중 최고 점수 채택 (기존 기록 영구 보존!)
         currentScore = Math.max(firestoreScore, localScore);
 
         const firestoreLives = firestoreData && firestoreData.lives !== undefined 
@@ -375,7 +362,6 @@ async function performLogin(inputName, inputPin, isAuto = false) {
 
         currentUser = inputName;
 
-        // 4. 로컬 스토리지에 최신 복원 정보 저장
         localStorage.setItem('bibleQuizUser', currentUser);
         localStorage.setItem('bibleQuizPin', inputPin);
         localStorage.setItem(`score_${currentUser}`, currentScore);
@@ -383,7 +369,6 @@ async function performLogin(inputName, inputPin, isAuto = false) {
         localStorage.setItem(`lastSolvedDailyDate_${currentUser}`, userLastSolvedDailyDate);
         localStorage.setItem(`lastReadDailyDate_${currentUser}`, userLastReadDailyDate);
 
-        // 5. 화면 표시 갱신
         if (hubPlayerDisplay) hubPlayerDisplay.innerText = currentUser;
         if (playerDisplay) playerDisplay.innerText = currentUser;
         if (walkPlayerDisplay) walkPlayerDisplay.innerText = currentUser;
@@ -392,15 +377,11 @@ async function performLogin(inputName, inputPin, isAuto = false) {
         updateScoreBoard();
         updateLivesIcon();
 
-        // 6. 허브 화면으로 정상 진입
         if (authScreen) authScreen.style.display = 'none';
         if (hubScreen) hubScreen.style.display = 'block';
 
-        if (window.logDebug) window.logDebug(`🎉 [입장 성공!] ${currentUser}님 기록 복원 완료: 💎 ${currentScore}개, 라이프 ❤️ ${totalLives}개`, "#10B981");
-
     } catch (err) {
         console.error("로그인 에러:", err);
-        if (window.logDebug) window.logDebug(`❌ 치명적 로그인 오류: ${err.message}`, "#EF4444");
         alert(`로그인 처리 중 에러가 발생했습니다: ${err.message}`);
     } finally {
         if (loginBtn) {
@@ -410,20 +391,14 @@ async function performLogin(inputName, inputPin, isAuto = false) {
     }
 }
 
-// 🌟 로그인 버튼 클릭 바인딩
 if (loginBtn) {
-    if (window.logDebug) window.logDebug("🔗 3. 로그인 버튼(login-btn) 이벤트 바인딩 성공", "#10B981");
     loginBtn.onclick = () => {
-        if (window.logDebug) window.logDebug("👆 [클릭 감지] 로그인 버튼이 눌렸습니다!", "#FDE047");
         const inputName = usernameInput ? usernameInput.value.trim() : "";
         const inputPin = pinInput ? pinInput.value.trim() : "";
         performLogin(inputName, inputPin, false);
     };
-} else {
-    if (window.logDebug) window.logDebug("❌ 오류: login-btn 요소를 찾을 수 없습니다!", "#EF4444");
 }
 
-// 엔터 키 바인딩
 if (usernameInput) {
     usernameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && pinInput) pinInput.focus();
@@ -435,13 +410,11 @@ if (pinInput) {
     });
 }
 
-// 이전 입력값 복원
 const savedName = localStorage.getItem('bibleQuizUser');
 const savedPin = localStorage.getItem('bibleQuizPin');
 if (savedName && usernameInput) usernameInput.value = savedName;
 if (savedPin && pinInput) pinInput.value = savedPin;
 
-// 로그아웃 (이름 변경)
 if (hubLogoutBtn) {
     hubLogoutBtn.onclick = () => {
         localStorage.removeItem('bibleQuizUser');
@@ -450,11 +423,9 @@ if (hubLogoutBtn) {
         if (pinInput) pinInput.value = "";
         if (hubScreen) hubScreen.style.display = 'none';
         if (authScreen) authScreen.style.display = 'block';
-        if (window.logDebug) window.logDebug("🚪 로그아웃 완료", "#F59E0B");
     };
 }
 
-// 도움말 모달
 if (hubHelpBtn) {
     hubHelpBtn.onclick = () => {
         if (helpModal) helpModal.style.display = 'flex';
@@ -488,7 +459,6 @@ if (modeWalkBtn) {
     };
 }
 
-// 인물 퀴즈 안전 로딩
 if (modePersonBtn) {
     modePersonBtn.onclick = async () => {
         if (personData.length === 0) {
@@ -641,7 +611,7 @@ function showFeedback(title, text, isCorrect) {
     const fText = document.getElementById('feedback-text');
     if (t) {
         t.innerText = title;
-        t.style.color = isCorrect ? "#10B981" : "#EF4444";
+        t.style.color = isCorrect ? "#F97316" : "#EF4444";
     }
     if (fText) fText.innerText = text;
 }
@@ -653,7 +623,6 @@ if (nextBtn) {
     };
 }
 
-// 🌟 라이프 소진 시 점수 50% 보존
 async function triggerGameOver() {
     if (choicesContainer) {
         choicesContainer.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
@@ -681,7 +650,7 @@ async function triggerGameOver() {
 }
 
 // -------------------------------------------------------------
-// [모드 2: 『진리의 빛 안에서』 로직]
+// [모드 2: 『진리의 빛 안에서』 로직 - 3색 오렌지 통일]
 // -------------------------------------------------------------
 function findWalkPlanByDate(month, day) {
     const m = Number(month);
@@ -722,11 +691,11 @@ function setupWalkMode(customDateStr = null) {
     if (!currentWalkPlan) {
         if (walkStreakBadge) walkStreakBadge.innerText = `☀️ ${realDateDisplay}`;
         if (walkReadingRange) walkReadingRange.innerText = "오늘의 성구 준비 중";
-        if (walkGoalQuestion) walkGoalQuestion.innerText = "해당 날짜의 성구 및 퍼즐 데이터가 아직 등록되지 않았습니다. 📅 달력 버튼을 눌러 등록된 날짜를 선택해 보세요.";
+        if (walkGoalQuestion) walkGoalQuestion.innerText = "해당 날짜의 성구 및 퍼즐 데이터가 등록되지 않았습니다. 📅 달력 버튼을 눌러 날짜를 선택해 보세요.";
         if (walkStatusTag) {
             walkStatusTag.innerText = "데이터 없음";
-            walkStatusTag.style.background = "#E5E7EB";
-            walkStatusTag.style.color = "#4B5563";
+            walkStatusTag.style.background = "#FFEDD5";
+            walkStatusTag.style.color = "#431407";
         }
         if (puzzleVerseRef) puzzleVerseRef.innerText = "[안내] 성구 데이터 준비 중";
         if (puzzleDropZone) puzzleDropZone.innerHTML = '<span style="font-size: 0.85rem; color: #9CA3AF;">등록된 단어 조각이 없습니다.</span>';
@@ -748,8 +717,8 @@ function setupWalkMode(customDateStr = null) {
     if (isReadToday) {
         if (walkStatusTag) {
             walkStatusTag.innerText = "읽기 완료 ✓";
-            walkStatusTag.style.background = "#DCFCE7";
-            walkStatusTag.style.color = "#15803D";
+            walkStatusTag.style.background = "#FFEDD5";
+            walkStatusTag.style.color = "#431407";
         }
         if (wolDeeplink) {
             wolDeeplink.classList.add('completed');
@@ -758,8 +727,8 @@ function setupWalkMode(customDateStr = null) {
     } else {
         if (walkStatusTag) {
             walkStatusTag.innerText = "읽기 전";
-            walkStatusTag.style.background = "#FEF3C7";
-            walkStatusTag.style.color = "#B45309";
+            walkStatusTag.style.background = "#FFF7ED";
+            walkStatusTag.style.color = "#EA580C";
         }
         if (wolDeeplink) {
             wolDeeplink.classList.remove('completed');
@@ -777,8 +746,8 @@ function setupWalkMode(customDateStr = null) {
         wolDeeplink.onclick = () => {
             if (walkStatusTag) {
                 walkStatusTag.innerText = "읽기 완료 ✓";
-                walkStatusTag.style.background = "#DCFCE7";
-                walkStatusTag.style.color = "#15803D";
+                walkStatusTag.style.background = "#FFEDD5";
+                walkStatusTag.style.color = "#431407";
             }
             wolDeeplink.classList.add('completed');
             wolDeeplink.innerHTML = "<span>✓ 오늘 읽기 완료 (다시 열기)</span>";
@@ -863,7 +832,7 @@ function renderWalkCalendar(year, month) {
         const hasData = walkInData.some(item => Number(item.month) === Number(month) && Number(item.day) === Number(day));
         if (hasData) {
             dayCell.classList.add('has-data');
-            dayCell.style.color = "#EA580C";
+            dayCell.style.color = "#F97316";
         }
 
         dayCell.onclick = () => {
@@ -933,7 +902,6 @@ function updatePuzzleBadge() {
     }
 }
 
-// 🌟 퍼즐 단어 조각 세팅 및 고정(Fix) 로직
 function setupWordPuzzle() {
     if (!currentWalkPlan || !puzzleVerseRef || !puzzleDropZone || !puzzleTileZone) return;
     puzzleVerseRef.innerText = `[암기 목표] ${currentWalkPlan.memory_verse.reference_display}`;
@@ -941,14 +909,15 @@ function setupWordPuzzle() {
     puzzleTileZone.innerHTML = '';
     selectedTiles = [];
 
-    // 이미 오늘 문제를 맞춘 경우: 정답 순서대로 조립하고 클릭 잠금(Fix)
+    // 정답 순서대로 조립 및 고정 (3색 팔레트: #F97316 바탕 / #431407 텍스트)
     if (isPuzzleSolved) {
         currentWalkPlan.memory_verse.puzzle_tiles.forEach((tileText) => {
             const tile = document.createElement('div');
             tile.className = "word-tile placed";
             tile.style.cursor = "default";
-            tile.style.backgroundColor = "#059669";
-            tile.style.borderColor = "#047857";
+            tile.style.backgroundColor = "#F97316";
+            tile.style.borderColor = "#EA580C";
+            tile.style.color = "#FFFFFF";
             tile.innerText = tileText;
             puzzleDropZone.appendChild(tile);
         });
@@ -1055,11 +1024,13 @@ if (puzzleCheckBtn) {
             if (puzzleResetBtn) puzzleResetBtn.disabled = true;
             puzzleCheckBtn.innerText = "✓ 오늘 암송 완료";
 
+            // 정답 완료 시 조각 고정 (3색 오렌지 통일)
             selectedTiles.forEach(item => {
                 item.element.onclick = null;
                 item.element.style.cursor = "default";
-                item.element.style.backgroundColor = "#059669";
-                item.element.style.borderColor = "#047857";
+                item.element.style.backgroundColor = "#F97316";
+                item.element.style.borderColor = "#EA580C";
+                item.element.style.color = "#FFFFFF";
                 item.element.innerText = item.text;
             });
 
@@ -1080,7 +1051,7 @@ if (puzzleCheckBtn) {
 
                 alert(`🎉 완벽합니다! 오늘의 일용할 성구를 완성하셨습니다!\n획득 보물: 💎 +${earnedPoints}점 (현재 보물: 💎 ${currentScore}개)\n\n"${currentWalkPlan.memory_verse.full_text}"`);
             } else {
-                alert(`🎉 완벽합니다! 성구를 바르게 암송하셨습니다.\n(자유 복습 모드에서는 보물이 추가되지 않습니다. 오늘의 성구도 도전해 보세요!)`);
+                alert(`🎉 완벽합니다! 성구를 바르게 암송하셨습니다.\n(자유 복습 모드에서는 보물이 추가되지 않습니다.)`);
             }
         } else {
             walkPuzzleAttempts++;
@@ -1091,7 +1062,7 @@ if (puzzleCheckBtn) {
 }
 
 // -------------------------------------------------------------
-// [모드 3: 『성경 인물 맞추기』 로직]
+// [모드 3: 『성경 인물 맞추기』 로직 - 3색 오렌지 통일]
 // -------------------------------------------------------------
 function loadPersonQuestion() {
     if (personData.length === 0) {
@@ -1121,22 +1092,23 @@ function loadPersonQuestion() {
         personChoicesContainer.innerHTML = '';
     }
 
+    // 대체 SVG 배경을 오렌지 그라데이션으로 적용
     if (personImage) {
         personImage.onerror = () => {
             const fallbackSvg = `
             <svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
                 <defs>
                     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#4C1D95"/>
-                        <stop offset="50%" stop-color="#6D28D9"/>
-                        <stop offset="100%" stop-color="#8B5CF6"/>
+                        <stop offset="0%" stop-color="#FB923C"/>
+                        <stop offset="50%" stop-color="#F97316"/>
+                        <stop offset="100%" stop-color="#EA580C"/>
                     </linearGradient>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#bgGrad)"/>
-                <circle cx="200" cy="85" r="45" fill="rgba(255,255,255,0.15)"/>
-                <text x="50%" y="100" font-size="44" text-anchor="middle" fill="#FDE047">❓</text>
+                <circle cx="200" cy="85" r="45" fill="rgba(255,255,255,0.2)"/>
+                <text x="50%" y="100" font-size="44" text-anchor="middle" fill="#FFFFFF">❓</text>
                 <text x="50%" y="156" font-family="'Malgun Gothic', sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#FFFFFF">이 인물은 누구일까요?</text>
-                <text x="50%" y="182" font-family="'Malgun Gothic', sans-serif" font-size="13" text-anchor="middle" fill="#DDD6FE">아래 단서를 읽고 정답을 맞춰보세요</text>
+                <text x="50%" y="182" font-family="'Malgun Gothic', sans-serif" font-size="13" text-anchor="middle" fill="#FFF7ED">아래 단서를 읽고 정답을 맞춰보세요</text>
             </svg>`.trim();
             personImage.src = `data:image/svg+xml;utf8,${encodeURIComponent(fallbackSvg)}`;
             personImage.onerror = null;
@@ -1176,7 +1148,7 @@ async function handlePersonChoice(selectedAnswer, btn, person) {
             personFeedbackContainer.style.display = 'block';
             if (personFeedbackTitle) {
                 personFeedbackTitle.innerText = `🎉 정답입니다! (${person.correctAnswer}, +💎1)`;
-                personFeedbackTitle.style.color = "#10B981";
+                personFeedbackTitle.style.color = "#F97316";
             }
             if (personFeedbackText) {
                 personFeedbackText.innerText = `📖 관련 성구: ${person.reference}\n\n위대한 믿음과 용기의 본을 남긴 인물입니다!`;
@@ -1224,7 +1196,7 @@ async function checkRewardMilestones() {
             축하합니다! 영적 보물 <strong>${currentScore.toLocaleString()}점</strong>에 도달하셨습니다!<br>
             명예의 전당(${HALL_OF_FAME_TARGET_SCORE.toLocaleString()}점)까지 단 1보 남았습니다.<br><br>
             <span style="color: #EA580C; font-weight: bold;">
-                📌 깜짝 선물 교환권을 스크린샷하여, 관리자(010-9020-4140)에게 보내주세요.
+                📌 깜짝 선물 교환권을 스크린샷하여, 관리자에게 보내주세요.
             </span>
         `.trim();
         
@@ -1380,7 +1352,7 @@ if (gameoverHomeBtn) {
 }
 
 // -------------------------------------------------------------
-// [관리자 전용 기능] 계정 이름 수정 / 삭제 / PIN 재설정
+// [관리자 전용 기능]
 // -------------------------------------------------------------
 function renderAdminTable(users) {
     if (!adminUserTbody) return;
@@ -1503,7 +1475,7 @@ window.adminEditUser = async (targetUsername, currentPinVal) => {
                     await deleteDoc(oldHallRef);
                 }
             } catch (err) {
-                console.warn("명예의 전당 갱신 중 오류 (무시 가능):", err);
+                console.warn("명예의 전당 갱신 중 오류:", err);
             }
 
             if (currentUser === targetUsername) {
